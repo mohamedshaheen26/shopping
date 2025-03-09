@@ -1,0 +1,419 @@
+import React, { useEffect, useState } from "react";
+import Loading from "../components/Loading";
+import OrderSuccessModal from "../components/Modal";
+import Alert from "../components/Alert";
+
+const Cart = ({ cartItems, setCartItems }) => {
+  const [cartId, setCartId] = useState(null);
+  const [subtotal, setSubtotal] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [shippingCost, setShippingCost] = useState(0);
+  const [discount, setDiscount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const userId = localStorage.getItem("userId");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("");
+
+  const showAlert = (message, type) => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setTimeout(() => setAlertMessage(""), 3000);
+  };
+
+  const fetchProductImage = async (productId) => {
+    try {
+      const response = await fetch(
+        `https://nshopping.runasp.net/api/Product/${productId}`
+      );
+      if (response.ok) {
+        const product = await response.json();
+        return product.imageUrl || "/assets/default-product.png"; // Default image fallback
+      }
+    } catch (error) {
+      console.error("Error fetching product image:", error);
+    }
+    return "/assets/default-product.png"; // Fallback in case of error
+  };
+
+  const fetchDiscount = async () => {
+    if (!cartItems.length) return;
+
+    // Assume the first item's category applies to the discount
+    const categoryId = cartItems[0]?.categoryId;
+    const quantity = cartItems.reduce(
+      (total, item) => total + item.quantity,
+      0
+    );
+    const totalPrice = subtotal;
+
+    try {
+      const response = await fetch(
+        `https://nshopping.runasp.net/api/Offer/apply-discount?categoryId=${categoryId}&quantity=${quantity}&totalPrice=${totalPrice}`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setDiscount(data.discountApplied || 0);
+      } else {
+        console.error("Failed to fetch discount");
+      }
+    } catch (error) {
+      console.error("Error fetching discount:", error);
+    }
+  };
+
+  // Load cart on component mount
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchCart = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch cart from the server
+        const response = await fetch(
+          `https://nshopping.runasp.net/api/Cart/GetByUser/${userId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const serverCart = await response.json();
+
+          if (serverCart.cartItems.length > 0) {
+            const updatedCartItems = await Promise.all(
+              serverCart.cartItems.map(async (item) => ({
+                ...item,
+                imageUrl: await fetchProductImage(item.productId),
+              }))
+            );
+            setCartId(serverCart.id);
+            setShippingCost(serverCart.deliveryCost || 0);
+            setDiscount(serverCart.discountApplied || 0);
+            setCartItems(updatedCartItems);
+            updateCartTotals(updatedCartItems);
+            localStorage.setItem(`cart_${userId}`, JSON.stringify(serverCart));
+          }
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching cart from server:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCart();
+  }, [userId]);
+
+  // Watch for cartItems changes
+  useEffect(() => {
+    updateCartTotals(cartItems);
+    fetchDiscount(); // Fetch discount after calculating subtotal
+  }, [cartItems]);
+
+  // Function to update cart totals
+  const updateCartTotals = (items) => {
+    const newSubtotal = items.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
+    setSubtotal(newSubtotal);
+    setTotal(newSubtotal + shippingCost - discount); // Apply discount here
+  };
+
+  // Remove item from cart
+  const removeFromCart = async (cartItemId) => {
+    const cartKey = `cart_${userId}`;
+    const updatedCart = cartItems.filter((item) => item.id !== cartItemId);
+
+    // Update localStorage
+    localStorage.setItem(cartKey, JSON.stringify({ cartItems: updatedCart }));
+    setCartItems([...updatedCart]);
+    updateCartTotals(updatedCart);
+
+    // Remove from server
+    try {
+      await fetch(
+        `https://nshopping.runasp.net/api/Cart/RemoveItem/${cartId}/${cartItemId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error removing item from server cart:", error);
+    }
+  };
+
+  // Update item quantity
+  const updateCartItemQuantity = async (itemId, newQuantity) => {
+    if (newQuantity < 1) return;
+
+    const cartKey = `cart_${userId}`;
+
+    // Update only quantity while keeping other properties
+    const updatedCart = cartItems.map((item) =>
+      item.id === itemId ? { ...item, quantity: newQuantity } : item
+    );
+
+    // Save updated cart to localStorage
+    localStorage.setItem(cartKey, JSON.stringify({ cartItems: updatedCart }));
+
+    // Update state
+    setCartItems(updatedCart);
+    updateCartTotals(updatedCart);
+
+    // Send update request to server
+    try {
+      await fetch("https://nshopping.runasp.net/api/Cart/Update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          userId,
+          productId: itemId,
+          quantity: newQuantity,
+        }),
+      });
+    } catch (error) {
+      console.error("Error updating item quantity in server cart:", error);
+    }
+  };
+
+  // Checkout function
+  const checkout = async () => {
+    if (!userId || cartItems.length === 0) {
+      showAlert(
+        "You must be logged in to checkout or your cart is empty.",
+        "warning"
+      );
+      return;
+    }
+
+    const orderPayload = {
+      userId,
+      items: cartItems.map(({ productId, quantity }) => ({
+        productId, // ✅ Ensure correct product ID is used
+        quantity,
+      })),
+    };
+
+    try {
+      const response = await fetch(
+        "https://nshopping.runasp.net/api/Order/Create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(orderPayload),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json(); // ✅ Get detailed error from API
+        throw new Error(errorData.message || "Failed to complete the purchase");
+      }
+
+      // ✅ Clear cart properly
+      localStorage.removeItem("cart"); // Ensure correct key is removed
+      setCartItems([]);
+      updateCartTotals([]);
+
+      setShowModal(true);
+    } catch (error) {
+      console.error("Checkout error:", error);
+      showAlert("Failed to complete the purchase. Please try again.", "danger");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const order = {
+    totalPrice: subtotal,
+    shippingCost: shippingCost,
+    discountApplied: discount,
+    finalPrice: total,
+  };
+
+  return (
+    <section className='cart'>
+      <OrderSuccessModal
+        show={showModal}
+        handleClose={() => setShowModal(false)}
+      />
+      <div className='container'>
+        {alertMessage && <Alert message={alertMessage} type={alertType} />}
+        {loading ? (
+          <Loading />
+        ) : cartItems.length > 0 ? (
+          <>
+            <h1 className='text-center'>Your Cart</h1>
+            <div className='cart-content'>
+              <div className='row'>
+                <div className='col-md-9'>
+                  <div className='table-responsive'>
+                    <table className='table mb-0'>
+                      <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th className='text-center'>Price</th>
+                          <th className='text-center'>Quantity</th>
+                          <th className='text-center'>Total</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cartItems.map((item) => (
+                          <tr key={item.id}>
+                            <td className='w-50'>
+                              <div className='d-flex align-items-center'>
+                                <img
+                                  src={item.imageUrl}
+                                  alt='Product Images'
+                                  height='100'
+                                  width='100'
+                                  className='me-3'
+                                />
+                                <h6>{item.productName}</h6>
+                              </div>
+                            </td>
+                            <td className='text-center align-middle'>
+                              {item.price}EGP
+                            </td>
+                            <td className='align-middle'>
+                              <div className='quantity-container d-flex justify-content-between align-items-center gap-2 px-2'>
+                                <button
+                                  className='quantity'
+                                  onClick={() =>
+                                    updateCartItemQuantity(
+                                      item.id,
+                                      item.quantity - 1
+                                    )
+                                  }
+                                  disabled={item.quantity === 1}
+                                >
+                                  -
+                                </button>
+                                <span className='mx-2'>{item.quantity}</span>
+                                <button
+                                  className='quantity'
+                                  onClick={() =>
+                                    updateCartItemQuantity(
+                                      item.id,
+                                      item.quantity + 1
+                                    )
+                                  }
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </td>
+                            <td className='text-center align-middle'>
+                              {item.price * item.quantity}EGP
+                            </td>
+                            <td className='text-center align-middle'>
+                              <button
+                                className='btn btn-sm del-cartItem'
+                                onClick={() => removeFromCart(item.id)}
+                              >
+                                ✖
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className='col-md-3'>
+                  <div className='card-body p-0 checkout'>
+                    <table className='table table-borderless mb-0'>
+                      <thead>
+                        <tr>
+                          <th
+                            colSpan='2'
+                            className='fs-5 text-black'
+                            scope='col'
+                          >
+                            Order Summary
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Items</td>
+                          <td className='text-center fw-bold'>
+                            {cartItems.length}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Subtotal</td>
+                          <td className='text-center fw-bold'>
+                            {order.totalPrice}EGP
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Shipping</td>
+                          <td className='text-center fw-bold'>
+                            {order.shippingCost}EGP
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Discount</td>
+                          <td className='text-center fw-bold'>
+                            {order.discountApplied}EGP
+                          </td>
+                        </tr>
+                        <tr className='fw-bold'>
+                          <td>Total Price</td>
+                          <td className='text-center fw-bold'>
+                            {order.finalPrice}EGP
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <button
+                    className='btn btn-primary btn-buy w-100'
+                    onClick={checkout}
+                  >
+                    Checkout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className='text-center my-5'>
+            <img
+              src='../../assets\empty-shopping-cart.png'
+              width={200}
+              alt='Empty Cart'
+            />
+            <h3 className='fw-bold my-2'>Your cart is empty</h3>
+            <a href='/products' className='hero-button'>
+              Start shopping!
+            </a>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
+export default Cart;
