@@ -77,7 +77,7 @@ const Header = ({ cartItems }) => {
               <ul className='nav-icons'>
                 <li>
                   <Link className='search_icon' to='products' title='Search'>
-                    <img src='../../assets/search.png' alt='Search' />
+                    <img src='../../assets/search_icon.png' alt='Search' />
                   </Link>
                 </li>
                 {/* <li>
