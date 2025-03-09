@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import Alert from "./Alert";
+import Loading from "./Loading";
 
 const SimilarProducts = ({ userId, selectedProductId }) => {
   const { categoryId } = useParams(); // Get categoryId from URL
   const [similarProducts, setSimilarProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("");
   const showAlert = (message, type) => {
@@ -110,7 +111,7 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
       <h2>Similar Products</h2>
       <div className='row' id='similarProducts'>
         {loading ? (
-          <p>Loading...</p>
+          <Loading />
         ) : similarProducts.length === 0 ? (
           <p>No similar products found.</p>
         ) : (

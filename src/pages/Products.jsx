@@ -103,7 +103,7 @@ const Shop = ({ addToCart }) => {
     addToCart(product);
 
     if (!userId) {
-      showAlert("Please login to add items to the cart.", "danger");
+      showAlert("Please login to add items to the cart.", "warning");
       return;
     }
 
