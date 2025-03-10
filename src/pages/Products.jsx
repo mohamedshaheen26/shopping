@@ -102,11 +102,6 @@ const Shop = ({ addToCart }) => {
   const handleAddToCart = async (product) => {
     addToCart(product);
 
-    if (!userId) {
-      showAlert("Please login to add items to the cart.", "warning");
-      return;
-    }
-
     try {
       let cartId = null;
 
@@ -156,7 +151,6 @@ const Shop = ({ addToCart }) => {
       showAlert("Item added to cart!", "success");
     } catch (error) {
       console.error("Error adding item to cart:", error);
-      showAlert("Failed to add item. Please try again.", "danger");
     }
   };
 

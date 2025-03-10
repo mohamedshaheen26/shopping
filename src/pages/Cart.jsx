@@ -228,6 +228,20 @@ const Cart = ({ cartItems, setCartItems }) => {
         throw new Error(errorData.message || "Failed to complete the purchase");
       }
 
+      // 2. Delete All Cart Items from Server One by One
+      for (const item of cartItems) {
+        await fetch(
+          `https://nshopping.runasp.net/api/Cart/RemoveItem/${cartId}/${item.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+      }
+
       // ✅ Clear cart properly
       localStorage.removeItem("cart"); // Ensure correct key is removed
       setCartItems([]);

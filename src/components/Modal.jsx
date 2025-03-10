@@ -17,7 +17,7 @@ const OrderSuccessModal = ({ show, handleClose }) => {
         <h2>Your order was added successfully</h2>
 
         {/* Description */}
-        <p>Thanks for choosing Shop.co</p>
+        <p>Thanks for choosing Vé.a</p>
 
         {/* Close Button */}
         <Button variant='success' onClick={handleClose}>

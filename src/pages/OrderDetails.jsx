@@ -14,7 +14,7 @@ const OrderDetails = () => {
           `https://nshopping.runasp.net/api/Cart/GetByUser/${userId}`
         );
         if (!response.ok) throw new Error("Failed to fetch cart");
-        const data = await response.json();
+        const data = await response.json(); 
         setCart(data);
       } catch (error) {
         console.error("Error fetching cart details:", error);
