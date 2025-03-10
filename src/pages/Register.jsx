@@ -15,6 +15,7 @@ const Register = () => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Handle input change
   const handleChange = (e) => {
@@ -124,6 +125,10 @@ const Register = () => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword); // Toggle the state
+  };
+
   return (
     <div className='container'>
       {loading && <Loader />}
@@ -185,15 +190,23 @@ const Register = () => {
             {/* Password */}
             <div className='col-md-12 mb-2'>
               <label className='form-label'>Password:</label>
-              <input
-                className='form-control'
-                type='password'
-                name='password'
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength='6'
-              />
+              <div className='input-group mb-3'>
+                <input
+                  className='form-control'
+                  type={showPassword ? "text" : "password"}
+                  name='password'
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  minLength='6'
+                />
+                <span className='input-group-text'>
+                  <i
+                    className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"}`}
+                    onClick={togglePasswordVisibility}
+                  ></i>
+                </span>
+              </div>
               {errors.password && (
                 <div className='error-message'>{errors.password}</div>
               )}

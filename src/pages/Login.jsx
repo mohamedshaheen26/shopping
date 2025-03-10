@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 
@@ -7,22 +7,57 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [users, setUsers] = useState([]); // State to store all users
   const navigate = useNavigate();
+
+  // Fetch all users on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch(
+          "https://nshopping.runasp.net/api/Users/All Users"
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setUsers(data); // Store all users in state
+        } else {
+          console.error("Failed to fetch users");
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true); // Show loader
+
     // Validation
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
+      setLoading(false);
       return;
     }
     if (password.length < 6) {
       setError("Password must be at least 6 characters long.");
+      setLoading(false);
       return;
     }
 
+    // Check if email exists in the users list
+    const userExists = users.some((user) => user.email === email);
+    if (!userExists) {
+      setError("Email does not exist. Please register first.");
+      setLoading(false);
+      return;
+    }
+
+    // Proceed with login
     try {
       const response = await fetch(
         "https://nshopping.runasp.net/api/Users/Login",
@@ -59,6 +94,10 @@ function Login() {
     return regex.test(email);
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword); // Toggle the state
+  };
+
   return (
     <div className='container'>
       {loading && <Loader />}
@@ -67,7 +106,7 @@ function Login() {
         {error && <div className='alert alert-danger'>{error}</div>}
 
         <form onSubmit={handleSubmit} id='loginForm'>
-          <div className='mb-3'>
+          <div className='col-md-12 mb-2'>
             <label className='form-label'>Email:</label>
             <input
               type='email'
@@ -78,17 +117,24 @@ function Login() {
             />
           </div>
 
-          <div className='mb-3'>
+          <div className='col-md-12'>
             <label className='form-label'>Password:</label>
-            <input
-              type='password'
-              className='form-control'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className='input-group mb-3'>
+              <input
+                type={showPassword ? "text" : "password"}
+                className='form-control'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <span className='input-group-text'>
+                <i
+                  className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"}`}
+                  onClick={togglePasswordVisibility}
+                ></i>
+              </span>
+            </div>
           </div>
-
           <button type='submit' className='btn btn-primary' disabled={loading}>
             Login
           </button>

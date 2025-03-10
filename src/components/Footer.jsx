@@ -46,15 +46,15 @@ const Footer = () => {
             <h4>Contact Us</h4>
             <ul>
               <li className='mb-2'>
-                <i className='fas fa-phone'></i>
+                <i className='fas fa-phone me-2'></i>
                 +20191342347
               </li>
               <li className='mb-2'>
-                <i className='fas fa-map-marker-alt'></i>
+                <i className='fas fa-map-marker-alt me-2'></i>
                 123 Main Street, Anytown, USA
               </li>
               <li className='mb-2'>
-                <i className='fas fa-envelope'></i>
+                <i className='fas fa-envelope me-2'></i>
                 example@example.com
               </li>
             </ul>
