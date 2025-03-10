@@ -1,31 +1,53 @@
 import React from "react";
-import { Modal, Button } from "react-bootstrap";
 
-const OrderSuccessModal = ({ show, handleClose }) => {
+function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  onConfirm,
+  confirmText = "Save",
+  closeText = "Close",
+}) {
+  if (!isOpen) return null; // Don't render if modal is closed
+
   return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Modal.Body className='text-center'>
-        {/* Success Icon */}
-        <div className='mb-3'>
-          <i
-            className='bi bi-check-circle-fill text-success'
-            style={{ fontSize: "3rem" }}
-          ></i>
+    <div className='modal fade show d-block text-dark' tabIndex='-1'>
+      <div className='modal-dialog'>
+        <div className='modal-content'>
+          <div className='modal-header'>
+            <h5 className='modal-title'>{title}</h5>
+            <button
+              type='button'
+              className='btn-close'
+              onClick={onClose}
+            ></button>
+          </div>
+          <div className='modal-body'>{children}</div>
+          <div className='modal-footer'>
+            {onConfirm && (
+              <button
+                type='button'
+                className='btn btn-primary'
+                onClick={onConfirm}
+              >
+                {confirmText}
+              </button>
+            )}
+            <button
+              type='button'
+              className='btn btn-secondary'
+              onClick={onClose}
+            >
+              {closeText}
+            </button>
+          </div>
         </div>
-
-        {/* Title */}
-        <h2>Your order was added successfully</h2>
-
-        {/* Description */}
-        <p>Thanks for choosing Vé.a</p>
-
-        {/* Close Button */}
-        <Button variant='success' onClick={handleClose}>
-          OK
-        </Button>
-      </Modal.Body>
-    </Modal>
+      </div>
+      {/* Backdrop */}
+      <div className='modal-backdrop fade show'></div>
+    </div>
   );
-};
+}
 
-export default OrderSuccessModal;
+export default Modal;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Loading from "../components/Loading";
-import OrderSuccessModal from "../components/Modal";
+import OrderSuccessPopup from "../components/OrderSuccessPopup";
 import Alert from "../components/Alert";
 
 const Cart = ({ cartItems, setCartItems }) => {
@@ -14,27 +14,28 @@ const Cart = ({ cartItems, setCartItems }) => {
   const userId = localStorage.getItem("userId");
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("");
-
+  const [cartFromServer, SetCartFromServer] = useState(null);
   const showAlert = (message, type) => {
     setAlertMessage(message);
     setAlertType(type);
     setTimeout(() => setAlertMessage(""), 3000);
   };
 
-  const fetchProductImage = async (productId) => {
-    try {
-      const response = await fetch(
-        `https://nshopping.runasp.net/api/Product/${productId}`
-      );
-      if (response.ok) {
-        const product = await response.json();
-        return product.imageUrl || "/assets/default-product.png"; // Default image fallback
-      }
-    } catch (error) {
-      console.error("Error fetching product image:", error);
-    }
-    return "/assets/default-product.png"; // Fallback in case of error
-  };
+  // const fetchProductImage = async (productId) => {
+  //   try {
+  //     const response = await fetch(
+  //       `https://nshopping.runasp.net/api/Product/${productId}`
+  //     );
+  //     if (response.ok) {
+  //       const product = await response.json();
+  //       return product.imageUrl || "/assets/default-product.png"; // Default image fallback
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching product image:", error);
+  //   }
+  //   return "/assets/default-product.png"; // Fallback in case of error
+  // };
+  // console.log(cartItems);
 
   const fetchDiscount = async () => {
     if (!cartItems.length) return;
@@ -65,8 +66,6 @@ const Cart = ({ cartItems, setCartItems }) => {
 
   // Load cart on component mount
   useEffect(() => {
-    if (!userId) return;
-
     const fetchCart = async () => {
       try {
         setLoading(true);
@@ -87,12 +86,30 @@ const Cart = ({ cartItems, setCartItems }) => {
           const serverCart = await response.json();
 
           if (serverCart.cartItems.length > 0) {
+            // Fetch category for each product
             const updatedCartItems = await Promise.all(
-              serverCart.cartItems.map(async (item) => ({
-                ...item,
-                imageUrl: await fetchProductImage(item.productId),
-              }))
+              serverCart.cartItems.map(async (item) => {
+                // Fetch product details to get categoryId
+                const productResponse = await fetch(
+                  `https://nshopping.runasp.net/api/Product/${item.productId}`
+                );
+                if (productResponse.ok) {
+                  const product = await productResponse.json();
+                  return {
+                    ...item,
+                    imageUrl: product.imageUrl || "/assets/default-product.png",
+                    categoryId: product.categoryId, // Add categoryId to the item
+                  };
+                }
+                return {
+                  ...item,
+                  imageUrl: "/assets/default-product.png", // Fallback image
+                  categoryId: null, // Fallback categoryId
+                };
+              })
             );
+
+            SetCartFromServer(serverCart);
             setCartId(serverCart.id);
             setShippingCost(serverCart.deliveryCost || 0);
             setDiscount(serverCart.discountApplied || 0);
@@ -194,21 +211,20 @@ const Cart = ({ cartItems, setCartItems }) => {
 
   // Checkout function
   const checkout = async () => {
-    if (!userId || cartItems.length === 0) {
-      showAlert(
-        "You must be logged in to checkout or your cart is empty.",
-        "warning"
-      );
+    if (!userId) {
+      showAlert("You must be logged in to checkout", "warning");
       return;
     }
 
     const orderPayload = {
       userId,
       items: cartItems.map(({ productId, quantity }) => ({
-        productId, // ✅ Ensure correct product ID is used
+        productId,
         quantity,
       })),
     };
+
+    console.log("Order Payload:", orderPayload); // Debugging
 
     try {
       const response = await fetch(
@@ -223,12 +239,20 @@ const Cart = ({ cartItems, setCartItems }) => {
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json(); // ✅ Get detailed error from API
-        throw new Error(errorData.message || "Failed to complete the purchase");
+      // Check if the response is JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await response.text(); // Read the response as plain text
+        throw new Error(errorText); // Throw the plain text error
       }
 
-      // 2. Delete All Cart Items from Server One by One
+      const data = await response.json(); // Parse JSON only if the content type is correct
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to complete the purchase");
+      }
+
+      // Clear cart after successful checkout
       for (const item of cartItems) {
         await fetch(
           `https://nshopping.runasp.net/api/Cart/RemoveItem/${cartId}/${item.id}`,
@@ -242,20 +266,21 @@ const Cart = ({ cartItems, setCartItems }) => {
         );
       }
 
-      // ✅ Clear cart properly
-      localStorage.removeItem("cart"); // Ensure correct key is removed
+      localStorage.removeItem("cart"); // Clear local storage
       setCartItems([]);
       updateCartTotals([]);
 
-      setShowModal(true);
+      setShowModal(true); // Show success modal
     } catch (error) {
       console.error("Checkout error:", error);
-      showAlert("Failed to complete the purchase. Please try again.", "danger");
+      showAlert(
+        error.message || "Failed to complete the purchase. Please try again.",
+        "danger"
+      );
     } finally {
       setLoading(false);
     }
   };
-
   const order = {
     totalPrice: subtotal,
     shippingCost: shippingCost,
@@ -265,7 +290,7 @@ const Cart = ({ cartItems, setCartItems }) => {
 
   return (
     <section className='cart'>
-      <OrderSuccessModal
+      <OrderSuccessPopup
         show={showModal}
         handleClose={() => setShowModal(false)}
       />
@@ -378,7 +403,7 @@ const Cart = ({ cartItems, setCartItems }) => {
                         <tr>
                           <td>Subtotal</td>
                           <td className='text-center fw-bold'>
-                            {order.totalPrice}EGP
+                            {cartFromServer?.totalPrice}EGP
                           </td>
                         </tr>
                         <tr>
@@ -390,13 +415,13 @@ const Cart = ({ cartItems, setCartItems }) => {
                         <tr>
                           <td>Discount</td>
                           <td className='text-center fw-bold'>
-                            {order.discountApplied}EGP
+                            {cartFromServer?.discountApplied}EGP
                           </td>
                         </tr>
                         <tr className='fw-bold'>
                           <td>Total Price</td>
                           <td className='text-center fw-bold'>
-                            {order.finalPrice}EGP
+                            {cartFromServer?.finalPrice}EGP
                           </td>
                         </tr>
                       </tbody>

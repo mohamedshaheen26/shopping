@@ -2,9 +2,30 @@ import React, { useEffect, useState } from "react";
 
 const OrderDetails = () => {
   const [cart, setCart] = useState(null);
+  const [order, setOrder] = useState(null);
   const [tracking, setTracking] = useState(null);
   const [loading, setLoading] = useState(true);
   const userId = localStorage.getItem("userId");
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const response = await fetch(
+          `https://nshopping.runasp.net/api/Order/User/${userId}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch cart");
+        const orders = await response.json();
+
+        if (orders.length > 0) {
+          const lastOrder = orders[orders.length - 1]; // Get the last order
+          setOrder(lastOrder);
+        }
+      } catch (error) {
+        console.error("Error fetching cart details:", error);
+      }
+    };
+    fetchOrder();
+  }, [userId]);
 
   // Fetch cart details
   useEffect(() => {
@@ -14,7 +35,7 @@ const OrderDetails = () => {
           `https://nshopping.runasp.net/api/Cart/GetByUser/${userId}`
         );
         if (!response.ok) throw new Error("Failed to fetch cart");
-        const data = await response.json(); 
+        const data = await response.json();
         setCart(data);
       } catch (error) {
         console.error("Error fetching cart details:", error);
@@ -53,7 +74,7 @@ const OrderDetails = () => {
     <section className='order-details'>
       <div className='container'>
         {/* ✅ Empty Cart Message */}
-        {cart?.cartItems?.length === 0 && (
+        {order?.items?.length === 0 && (
           <div className='text-center'>
             <img
               src='/assets/empty.webp' // Make sure this path is correct
@@ -66,12 +87,12 @@ const OrderDetails = () => {
         )}
 
         {/* ✅ Show orders only if cart has items */}
-        {cart?.cartItems?.length > 0 && (
+        {order.items.length > 0 && (
           <>
             <h1 className='text-center'>Orders</h1>
 
             <div className='mt-4 p-4 shadow-lg rounded bg-white'>
-              <h2 className='fw-bold'>Order #{cart?.id || "N/A"}</h2>
+              <h2 className='fw-bold'>Order #{order?.id || "N/A"}</h2>
 
               <div className='mt-3'>
                 <h4 className='fw-bold'>Order Details:</h4>
@@ -97,14 +118,14 @@ const OrderDetails = () => {
 
               {/* ✅ Products in the Order */}
               <h4 className='fw-bold mt-4'>Products in this Order:</h4>
-              {cart.cartItems.map((item) => (
+              {order.items.slice(1).map((item) => (
                 <div
                   key={item.id}
                   className='mt-3 border-bottom pb-3 d-flex flex-column flex-lg-row align-items-start gap-3'
                 >
                   {/* ✅ Display Product Image */}
                   <img
-                    src={item.imageUrl || "https://via.placeholder.com/124"}
+                    src={item.imageUrl}
                     alt={item.productName}
                     className='rounded bg-light'
                     width='124'
@@ -128,7 +149,7 @@ const OrderDetails = () => {
               <div className='mt-4 text-end'>
                 <h4 className='fw-semibold'>
                   Subtotal:{" "}
-                  <span className='text-dark'>${cart?.totalPrice}</span>
+                  <span className='text-dark'>${order?.totalAmount}</span>
                 </h4>
                 <h4 className='fw-semibold'>
                   Delivery Cost:{" "}
@@ -136,7 +157,9 @@ const OrderDetails = () => {
                 </h4>
                 <h4 className='fw-semibold'>
                   Final Price:{" "}
-                  <span className='text-danger'>${cart?.finalPrice}</span>
+                  <span className='text-danger'>
+                    ${order?.totalAmount + cart?.deliveryCost}
+                  </span>
                 </h4>
               </div>
             </div>

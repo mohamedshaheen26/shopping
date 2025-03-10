@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import Alert from "./Alert";
 import Loading from "./Loading";
+import Modal from "./Modal";
 
 const SimilarProducts = ({ userId, selectedProductId }) => {
   const { categoryId } = useParams(); // Get categoryId from URL
@@ -9,6 +10,12 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
   const [loading, setLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("");
+
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false); // Loader state
+  const [selectedCountry, setSelectedCountry] = useState(""); // Track selected country
+  const [selectedProduct, setSelectedProduct] = useState(null); // Track selected product
+
   const showAlert = (message, type) => {
     setAlertMessage(message);
     setAlertType(type);
@@ -46,11 +53,8 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
     fetchSimilarProducts();
   }, [userId, categoryId, selectedProductId]);
 
-  const addToCart = async (product) => {
-    if (!userId) {
-      showAlert("Please login to add items to the cart.", "danger");
-      return;
-    }
+  const addToCart = async (product, countryCode) => {
+    setIsSaving(true);
 
     try {
       let cartId = null;
@@ -64,25 +68,23 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
       if (cartResponse.ok) {
         const cartData = await cartResponse.json();
         cartId = cartData?.id || null;
-        console.log("Existing cart:", cartId);
       }
 
       // Step 2: If no cart exists, create a new one with delivery
       if (!cartId) {
         const createCartResponse = await fetch(
-          `https://nshopping.runasp.net/api/Cart/Create/${userId}?delivery=1`,
+          `https://nshopping.runasp.net/api/Cart/AddItem/${cartId}?delivery=${countryCode}`,
           { method: "POST", headers: { "Content-Type": "application/json" } }
         );
 
         const newCart = await createCartResponse.json();
         if (!createCartResponse.ok) throw new Error("Failed to create cart");
         cartId = newCart.id;
-        console.log("New cart created:", cartId);
       }
 
       // Step 3: Add item to cart
       const addItemResponse = await fetch(
-        `https://nshopping.runasp.net/api/Cart/AddItem/${cartId}?delivery=1`,
+        `https://nshopping.runasp.net/api/Cart/AddItem/${cartId}?delivery=${countryCode}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -94,14 +96,21 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
       );
 
       const addItemData = await addItemResponse.json();
-      console.log("Add item response:", addItemData);
 
       if (!addItemResponse.ok) throw new Error("Failed to add item to cart");
 
       showAlert("Item added to cart!", "success");
     } catch (error) {
       console.error("Error adding item to cart:", error);
-      showAlert("Failed to add item. Please try again.", "danger");
+    } finally {
+      setIsSaving(false); // Hide loading spinner
+      setIsCartModalOpen(false); // Close the modal
+    }
+  };
+
+  const handleConfirmCountry = () => {
+    if (selectedProduct && selectedCountry) {
+      addToCart(selectedProduct, selectedCountry);
     }
   };
 
@@ -144,7 +153,10 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
                       className={`add-cart border-0 ${
                         product.stock > 0 ? "" : "disabled"
                       }`}
-                      onClick={() => addToCart(product)}
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setIsCartModalOpen(true);
+                      }}
                       disabled={product.stock === 0}
                     >
                       Add to Cart <i className='fas fa-shopping-cart'></i>
@@ -163,6 +175,41 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
           ))
         )}
       </div>
+
+      {/* Country Selection Modal */}
+      <Modal
+        isOpen={isCartModalOpen}
+        onClose={() => setIsCartModalOpen(false)}
+        title='Select Country'
+        confirmText={
+          isSaving ? (
+            <span className='spinner-border spinner-border-sm'></span>
+          ) : (
+            "Confirm"
+          )
+        }
+        confirmDisabled={isSaving || !selectedCountry}
+        closeText='Cancel'
+        onConfirm={handleConfirmCountry}
+      >
+        <div className='row'>
+          <div className='col-12'>
+            <h5>Country</h5>
+            <select
+              className='form-select'
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+            >
+              <option value=''>Select a country</option>
+              <option value='0'>Tanta</option>
+              <option value='1'>Cairo</option>
+              <option value='2'>UpperEgypt</option>
+              <option value='3'>Alexadria</option>
+              <option value='4'>Mansoura</option>
+            </select>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

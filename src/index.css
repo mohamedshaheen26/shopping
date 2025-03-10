@@ -81,6 +81,14 @@ a:hover {
   pointer-events: none;
 }
 
+.modal {
+  z-index: 999999999;
+}
+
+.modal-content {
+  z-index: 999990999;
+}
+
 /* Loader Styles */
 .loader {
   display: flex;
