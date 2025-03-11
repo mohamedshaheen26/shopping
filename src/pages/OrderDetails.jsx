@@ -74,7 +74,7 @@ const OrderDetails = () => {
     <section className='order-details'>
       <div className='container'>
         {/* ✅ Empty Cart Message */}
-        {order?.items?.length === 0 && (
+        {!order && (
           <div className='text-center'>
             <img
               src='/assets/empty.webp' // Make sure this path is correct
@@ -87,7 +87,7 @@ const OrderDetails = () => {
         )}
 
         {/* ✅ Show orders only if cart has items */}
-        {order.items.length > 0 && (
+        {order && order.items && order.items.length > 0 && (
           <>
             <h1 className='text-center'>Orders</h1>
 
@@ -124,13 +124,13 @@ const OrderDetails = () => {
                   className='mt-3 border-bottom pb-3 d-flex flex-column flex-lg-row align-items-start gap-3'
                 >
                   {/* ✅ Display Product Image */}
-                  <img
+                  {/* <img
                     src={item.imageUrl}
                     alt={item.productName}
                     className='rounded bg-light'
                     width='124'
                     height='124'
-                  />
+                  /> */}
                   <div>
                     <h5 className='fw-bold'>{item.productName}</h5>
                     <p>
