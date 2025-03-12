@@ -15,6 +15,7 @@ const Cart = ({ cartItems, setCartItems }) => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("");
   const [cartFromServer, SetCartFromServer] = useState(null);
+
   const showAlert = (message, type) => {
     setAlertMessage(message);
     setAlertType(type);
@@ -223,8 +224,6 @@ const Cart = ({ cartItems, setCartItems }) => {
         quantity,
       })),
     };
-
-    console.log("Order Payload:", orderPayload); // Debugging
 
     try {
       const response = await fetch(

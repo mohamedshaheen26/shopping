@@ -11,6 +11,8 @@ const Header = ({ cartItems }) => {
   const removeCredntials = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
+    localStorage.removeItem("cart");
+    localStorage.removeItem(`cart_${userId}`);
     window.location.href = "/login";
   };
 

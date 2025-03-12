@@ -7,7 +7,6 @@ import SimilarProducts from "../components/SimilarProducts";
 import Modal from "../components/Modal";
 
 const API_BASE_URL = "https://nshopping.runasp.net/api";
-const userId = localStorage.getItem("userId");
 
 const Shop = ({ addToCart }) => {
   const { categoryId, productId } = useParams();
@@ -27,6 +26,8 @@ const Shop = ({ addToCart }) => {
   const [isSaving, setIsSaving] = useState(false); // Loader state
   const [selectedCountry, setSelectedCountry] = useState(""); // Track selected country
   const [selectedProduct, setSelectedProduct] = useState(null); // Track selected product
+
+  const userId = localStorage.getItem("userId");
 
   const showAlert = (message, type) => {
     setAlertMessage(message);
@@ -108,6 +109,7 @@ const Shop = ({ addToCart }) => {
   const handleAddToCart = async (product, countryCode) => {
     addToCart(product);
     setIsSaving(true); // Show loading spinner
+    console.log(userId);
     try {
       let cartId = null;
 
@@ -144,17 +146,15 @@ const Shop = ({ addToCart }) => {
             productId: product.id,
             quantity: 1,
           }),
+          mode: "cors",
         }
       );
 
       const addItemData = await addItemResponse.json();
 
-      if (!addItemResponse.ok) throw new Error("Failed to add item to cart");
-
       showAlert("Item added to cart!", "success");
     } catch (error) {
       console.error("Error adding item to cart:", error);
-      showAlert("Failed to add item to cart.", "danger");
     } finally {
       setIsSaving(false); // Hide loading spinner
       setIsCartModalOpen(false); // Close the modal
