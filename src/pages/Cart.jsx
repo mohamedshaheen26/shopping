@@ -225,6 +225,19 @@ const Cart = ({ cartItems, setCartItems }) => {
       })),
     };
 
+    // Validate the payload
+    if (!userId) {
+      showAlert("Invalid user ID", "warning");
+      return;
+    }
+
+    for (const item of cartItems) {
+      if (!item.productId || item.quantity <= 0) {
+        showAlert("Invalid product ID or quantity", "warning");
+        return;
+      }
+    }
+
     try {
       const response = await fetch(
         "https://nshopping.runasp.net/api/Order/Create",
@@ -242,28 +255,19 @@ const Cart = ({ cartItems, setCartItems }) => {
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         const errorText = await response.text(); // Read the response as plain text
+        console.error("Non-JSON response:", errorText); // Log the error
         throw new Error(errorText); // Throw the plain text error
       }
 
       const data = await response.json(); // Parse JSON only if the content type is correct
 
       if (!response.ok) {
+        console.error("Server error:", data); // Log the server's error response
         throw new Error(data.message || "Failed to complete the purchase");
       }
 
       // Clear cart after successful checkout
-      for (const item of cartItems) {
-        await fetch(
-          `https://nshopping.runasp.net/api/Cart/RemoveItem/${cartId}/${item.id}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-      }
+      await clearCart();
 
       localStorage.removeItem("cart"); // Clear local storage
       setCartItems([]);
@@ -280,6 +284,33 @@ const Cart = ({ cartItems, setCartItems }) => {
       setLoading(false);
     }
   };
+
+  const clearCart = async () => {
+    try {
+      for (const item of cartItems) {
+        const response = await fetch(
+          `https://nshopping.runasp.net/api/Cart/RemoveItem/${cartId}/${item.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Failed to remove item from cart:", errorData);
+          throw new Error("Failed to clear cart");
+        }
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      throw error; // Re-throw the error to handle it in the checkout function
+    }
+  };
+
   const order = {
     totalPrice: subtotal,
     shippingCost: shippingCost,

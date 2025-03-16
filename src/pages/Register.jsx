@@ -116,7 +116,7 @@ const Register = () => {
         setLoading(false);
         navigate("/login");
       } else {
-        console.error("Registration failed.");
+        console.error("Registration failed. Try Again");
       }
     } catch (error) {
       console.error("Error during registration:", error);
