@@ -1,5 +1,5 @@
 import { React, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Slider from "../components/Slider";
 import Loading from "../components/Loading";
 
@@ -37,8 +37,6 @@ const Home = () => {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [alertMessage, setAlertMessage] = useState(null);
-  const navigate = useNavigate();
 
   // Fetch categories & products
   useEffect(() => {
@@ -64,7 +62,6 @@ const Home = () => {
         setProducts(productsData);
       } catch (error) {
         console.error("Error fetching categories or products:", error);
-        setAlertMessage("Failed to load categories.");
       } finally {
         setLoading(false);
       }
