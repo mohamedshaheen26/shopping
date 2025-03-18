@@ -54,7 +54,7 @@ function Layout() {
           />
           <Route path='/login' element={<Login />} />
           <Route path='/register' element={<Register />} />
-          <Route path='/OrderDetails' element={<OrderDetails />} />
+          <Route path='/orderDetails' element={<OrderDetails />} />
           <Route
             path='/products'
             element={

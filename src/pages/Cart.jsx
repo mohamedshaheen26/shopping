@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import OrderSuccessPopup from "../components/OrderSuccessPopup";
 import Alert from "../components/Alert";
+import { useNavigate } from "react-router-dom";
 
 const Cart = ({ cartItems, setCartItems }) => {
   const [cartId, setCartId] = useState(null);
@@ -15,6 +16,7 @@ const Cart = ({ cartItems, setCartItems }) => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("");
   const [cartFromServer, SetCartFromServer] = useState(null);
+  const navigate = useNavigate();
 
   const showAlert = (message, type) => {
     setAlertMessage(message);
@@ -296,6 +298,7 @@ const Cart = ({ cartItems, setCartItems }) => {
       updateCartTotals([]);
 
       setShowModal(true); // Show success modal
+      navigate("/orderDetails");
     } catch (error) {
       console.error("Checkout error:", error);
       showAlert(

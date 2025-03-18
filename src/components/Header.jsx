@@ -63,11 +63,11 @@ const Header = ({ cartItems }) => {
                 <li className='nav-item'>
                   <Link
                     className={`nav-link ${
-                      location.pathname.startsWith("/OrderDetails")
+                      location.pathname.startsWith("/orderDetails")
                         ? "active"
                         : ""
                     }`}
-                    to='/OrderDetails'
+                    to='/orderDetails'
                   >
                     Order Details
                   </Link>
