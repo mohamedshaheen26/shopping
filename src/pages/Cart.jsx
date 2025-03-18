@@ -143,7 +143,19 @@ const Cart = ({ cartItems, setCartItems }) => {
       0
     );
     setSubtotal(newSubtotal);
-    setTotal(newSubtotal + shippingCost - discount); // Apply discount here
+    const newTotal = newSubtotal + shippingCost - discount;
+    setTotal(newTotal);
+
+    // Update cartFromServer with the new totals
+    if (cartFromServer) {
+      const updatedCartFromServer = {
+        ...cartFromServer,
+        totalPrice: newSubtotal,
+        discountApplied: discount,
+        finalPrice: newTotal,
+      };
+      SetCartFromServer(updatedCartFromServer);
+    }
   };
 
   // Remove item from cart
@@ -168,6 +180,16 @@ const Cart = ({ cartItems, setCartItems }) => {
           },
         }
       );
+
+      // Update cartFromServer after removing the item
+      const updatedCartFromServer = {
+        ...cartFromServer,
+        cartItems: updatedCart,
+        totalPrice: subtotal,
+        discountApplied: discount,
+        finalPrice: total,
+      };
+      SetCartFromServer(updatedCartFromServer);
     } catch (error) {
       console.error("Error removing item from server cart:", error);
     }
