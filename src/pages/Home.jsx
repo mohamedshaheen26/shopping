@@ -102,7 +102,7 @@ const Home = () => {
               const imageUrl =
                 categoryProducts.length > 0
                   ? categoryProducts[0].imageUrl // Use product's image if available
-                  : "https://example.com/images/default-category.jpg"; // Fallback image
+                  : "../assets/No_Image_Available.jpg"; // Fallback image
 
               return (
                 <li key={category.id} className='text-center'>
