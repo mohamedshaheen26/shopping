@@ -129,24 +129,9 @@ const Home = () => {
         <h1 className='section-title mb-4'>All Collections</h1>
         <Slider images={allCollection} itemsPerSlide={3} />
       </section>
-      <section className='new-collection'>
-        <div className='one'>
-          <h2 className='section-title mb-4'>New Collection</h2>
-          <span>
-            33% <br /> OFF
-          </span>
-          <Link to='products' className='hero-button'>
-            Shop Now
-          </Link>
-        </div>
-        <div className='two'>
-          <h2 className='section-title mb-4'>New Collection</h2>
-          <span>
-            Vacation <br /> Offer
-          </span>
-          <Link to='products' className='hero-button'>
-            Shop Now
-          </Link>
+      <section className='discount'>
+        <div className='container'>
+          <img src='../assets/discount.jpg' alt='discount' />
         </div>
       </section>
       <section className='trending'>
