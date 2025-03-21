@@ -4,6 +4,8 @@ import Alert from "./Alert";
 import Loading from "./Loading";
 import Modal from "./Modal";
 
+import { API_BASE_URL } from "../config";
+
 const SimilarProducts = ({ userId, selectedProductId }) => {
   const { categoryId } = useParams(); // Get categoryId from URL
   const [similarProducts, setSimilarProducts] = useState([]);
@@ -28,7 +30,7 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
       try {
         setLoading(true);
         const response = await fetch(
-          `https://nshopping.runasp.net/api/Product/Recommended/${userId}/${categoryId}`
+          `${API_BASE_URL}/Product/Recommended/${userId}/${categoryId}`
         );
         if (!response.ok)
           throw new Error("Failed to fetch recommended products");
@@ -61,7 +63,7 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
 
       // Step 1: Get the user's cart
       const cartResponse = await fetch(
-        `https://nshopping.runasp.net/api/Cart/GetByUser/${userId}`,
+        `${API_BASE_URL}/Cart/GetByUser/${userId}`,
         { method: "GET", headers: { "Content-Type": "application/json" } }
       );
 
@@ -73,7 +75,7 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
       // Step 2: If no cart exists, create a new one with delivery
       if (!cartId) {
         const createCartResponse = await fetch(
-          `https://nshopping.runasp.net/api/Cart/AddItem/${cartId}?delivery=${countryCode}`,
+          `${API_BASE_URL}/Cart/AddItem/${cartId}?delivery=${countryCode}`,
           { method: "POST", headers: { "Content-Type": "application/json" } }
         );
 
@@ -84,7 +86,7 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
 
       // Step 3: Add item to cart
       const addItemResponse = await fetch(
-        `https://nshopping.runasp.net/api/Cart/AddItem/${cartId}?delivery=${countryCode}`,
+        `${API_BASE_URL}/Cart/AddItem/${cartId}?delivery=${countryCode}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -162,7 +164,7 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
                       Add to Cart <i className='fas fa-shopping-cart'></i>
                     </button>
                     <Link
-                      tto={`/products/${product.categoryId}/${product.id}`}
+                      to={`/products/${product.categoryId}/${product.id}`}
                       className='view-product'
                     >
                       View Details{" "}
