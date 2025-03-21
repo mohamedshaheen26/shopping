@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 
+import { API_BASE_URL } from "../config";
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,9 +17,7 @@ function Login() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(
-          "https://nshopping.runasp.net/api/Users/All Users"
-        );
+        const response = await fetch(`${API_BASE_URL}/Users/All Users`);
         if (response.ok) {
           const data = await response.json();
           setUsers(data); // Store all users in state

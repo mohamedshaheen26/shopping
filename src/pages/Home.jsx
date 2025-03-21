@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import Slider from "../components/Slider";
 import Loading from "../components/Loading";
 
+import { API_BASE_URL } from "../config";
+
 const allCollection = [
   "/assets/collection-1.jpg",
   "/assets/collection-2.jpg",
@@ -45,15 +47,13 @@ const Home = () => {
         setLoading(true);
 
         const categoryResponse = await fetch(
-          "https://nshopping.runasp.net/api/Category/AllCategories"
+          `${API_BASE_URL}/Category/AllCategories`
         );
         if (!categoryResponse.ok) throw new Error("Failed to fetch categories");
 
         const categoriesData = await categoryResponse.json();
 
-        const productsResponse = await fetch(
-          "https://nshopping.runasp.net/api/Product"
-        );
+        const productsResponse = await fetch(`${API_BASE_URL}/Product`);
         if (!productsResponse.ok) throw new Error("Failed to fetch products");
 
         const productsData = await productsResponse.json();

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 
+import { API_BASE_URL } from "../config";
+
 const OrderDetails = () => {
   const [cart, setCart] = useState(null);
   const [order, setOrder] = useState(null);
@@ -10,9 +12,7 @@ const OrderDetails = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await fetch(
-          `https://nshopping.runasp.net/api/Order/User/${userId}`
-        );
+        const response = await fetch(`${API_BASE_URL}/Order/User/${userId}`);
         if (!response.ok) throw new Error("Failed to fetch cart");
         const orders = await response.json();
 
@@ -32,7 +32,7 @@ const OrderDetails = () => {
     const fetchCartDetails = async () => {
       try {
         const response = await fetch(
-          `https://nshopping.runasp.net/api/Cart/GetByUser/${userId}`
+          `${API_BASE_URL}/Cart/GetByUser/${userId}`
         );
         if (!response.ok) throw new Error("Failed to fetch cart");
         const data = await response.json();
@@ -52,7 +52,7 @@ const OrderDetails = () => {
     const fetchTrackingData = async () => {
       try {
         const response = await fetch(
-          `https://nshopping.runasp.net/api/Cart/${cart.id}/tracking`
+          `${API_BASE_URL}/Cart/${cart.id}/tracking`
         );
         if (!response.ok) throw new Error("Failed to fetch tracking data");
         const data = await response.json();

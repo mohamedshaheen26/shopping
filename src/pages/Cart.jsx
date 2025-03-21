@@ -4,6 +4,8 @@ import OrderSuccessPopup from "../components/OrderSuccessPopup";
 import Alert from "../components/Alert";
 import { useNavigate } from "react-router-dom";
 
+import { API_BASE_URL } from "../config";
+
 const Cart = ({ cartItems, setCartItems }) => {
   const [cartId, setCartId] = useState(null);
   const [subtotal, setSubtotal] = useState(0);
@@ -27,7 +29,7 @@ const Cart = ({ cartItems, setCartItems }) => {
   // const fetchProductImage = async (productId) => {
   //   try {
   //     const response = await fetch(
-  //       `https://nshopping.runasp.net/api/Product/${productId}`
+  //       `${API_BASE_URL}/Product/${productId}`
   //     );
   //     if (response.ok) {
   //       const product = await response.json();
@@ -53,7 +55,7 @@ const Cart = ({ cartItems, setCartItems }) => {
 
     try {
       const response = await fetch(
-        `https://nshopping.runasp.net/api/Offer/apply-discount?categoryId=${categoryId}&quantity=${quantity}&totalPrice=${totalPrice}`
+        `${API_BASE_URL}/Offer/apply-discount?categoryId=${categoryId}&quantity=${quantity}&totalPrice=${totalPrice}`
       );
 
       if (response.ok) {
@@ -75,7 +77,7 @@ const Cart = ({ cartItems, setCartItems }) => {
 
         // Fetch cart from the server
         const response = await fetch(
-          `https://nshopping.runasp.net/api/Cart/GetByUser/${userId}`,
+          `${API_BASE_URL}/Cart/GetByUser/${userId}`,
           {
             method: "GET",
             headers: {
@@ -94,7 +96,7 @@ const Cart = ({ cartItems, setCartItems }) => {
               serverCart.cartItems.map(async (item) => {
                 // Fetch product details to get categoryId
                 const productResponse = await fetch(
-                  `https://nshopping.runasp.net/api/Product/${item.productId}`
+                  `${API_BASE_URL}/Product/${item.productId}`
                 );
                 if (productResponse.ok) {
                   const product = await productResponse.json();
@@ -172,16 +174,13 @@ const Cart = ({ cartItems, setCartItems }) => {
 
     // Remove from server
     try {
-      await fetch(
-        `https://nshopping.runasp.net/api/Cart/RemoveItem/${cartId}/${cartItemId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      await fetch(`${API_BASE_URL}/Cart/RemoveItem/${cartId}/${cartItemId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       // Update cartFromServer after removing the item
       const updatedCartFromServer = {
@@ -216,22 +215,22 @@ const Cart = ({ cartItems, setCartItems }) => {
     updateCartTotals(updatedCart);
 
     // Send update request to server
-    try {
-      await fetch("https://nshopping.runasp.net/api/Cart/Update", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          userId,
-          productId: itemId,
-          quantity: newQuantity,
-        }),
-      });
-    } catch (error) {
-      console.error("Error updating item quantity in server cart:", error);
-    }
+    // try {
+    //   await fetch(`${API_BASE_URL}/Cart/Update`, {
+    //     method: "PUT",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //     },
+    //     body: JSON.stringify({
+    //       userId,
+    //       productId: itemId,
+    //       quantity: newQuantity,
+    //     }),
+    //   });
+    // } catch (error) {
+    //   console.error("Error updating item quantity in server cart:", error);
+    // }
   };
 
   // Checkout function
@@ -263,17 +262,14 @@ const Cart = ({ cartItems, setCartItems }) => {
     }
 
     try {
-      const response = await fetch(
-        "https://nshopping.runasp.net/api/Order/Create",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify(orderPayload),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/Order/Create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(orderPayload),
+      });
 
       // Check if the response is JSON
       const contentType = response.headers.get("content-type");
@@ -314,7 +310,7 @@ const Cart = ({ cartItems, setCartItems }) => {
     try {
       for (const item of cartItems) {
         const response = await fetch(
-          `https://nshopping.runasp.net/api/Cart/RemoveItem/${cartId}/${item.id}`,
+          `${API_BASE_URL}/Cart/RemoveItem/${cartId}/${item.id}`,
           {
             method: "DELETE",
             headers: {

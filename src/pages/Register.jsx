@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 
+import { API_BASE_URL } from "../config";
+
 const Register = () => {
   const navigate = useNavigate(); // To navigate after successful registration
   const [formData, setFormData] = useState({
@@ -100,17 +102,14 @@ const Register = () => {
     };
 
     try {
-      const response = await fetch(
-        "https://nshopping.runasp.net/api/Users/Register",
-        {
-          method: "POST",
-          headers: {
-            Accept: "*/*",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userData),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/Users/Register`, {
+        method: "POST",
+        headers: {
+          Accept: "*/*",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
 
       if (response.ok) {
         setLoading(false);

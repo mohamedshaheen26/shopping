@@ -6,7 +6,7 @@ import Loading from "../components/Loading";
 import SimilarProducts from "../components/SimilarProducts";
 import Modal from "../components/Modal";
 
-const API_BASE_URL = "https://nshopping.runasp.net/api";
+import { API_BASE_URL } from "../config";
 
 const Shop = ({ addToCart }) => {
   const { categoryId, productId } = useParams();
