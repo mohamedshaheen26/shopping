@@ -128,7 +128,11 @@ const Shop = ({ addToCart }) => {
       if (!cartId) {
         const createCartResponse = await fetch(
           `https://nshopping.runasp.net/api/Cart/Create/${userId}?delivery=${countryCode}`,
-          { method: "POST", headers: { "Content-Type": "application/json" } }
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            mode: "no-cors",
+          }
         );
 
         const newCart = await createCartResponse.json();

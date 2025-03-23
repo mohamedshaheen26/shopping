@@ -45,25 +45,44 @@ const Cart = ({ cartItems, setCartItems }) => {
   const fetchDiscount = async () => {
     if (!cartItems.length) return;
 
-    // Assume the first item's category applies to the discount
-    const categoryId = cartItems[0]?.categoryId;
-    const quantity = cartItems.reduce(
-      (total, item) => total + item.quantity,
-      0
-    );
-    const totalPrice = subtotal;
+    // Group items by category
+    const categoryTotals = cartItems.reduce((acc, item) => {
+      if (!acc[item.categoryId]) {
+        acc[item.categoryId] = { quantity: 0, totalPrice: 0 };
+      }
+      acc[item.categoryId].quantity += item.quantity;
+      acc[item.categoryId].totalPrice += item.price * item.quantity;
+      return acc;
+    }, {});
+
+    let totalDiscount = 0;
+    let updatedFinalPrice = subtotal;
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/Offer/apply-discount?categoryId=${categoryId}&quantity=${quantity}&totalPrice=${totalPrice}`
-      );
+      // Fetch discount for each category separately
+      for (const [categoryId, { quantity, totalPrice }] of Object.entries(
+        categoryTotals
+      )) {
+        const response = await fetch(
+          `${API_BASE_URL}/Offer/apply-discount?categoryId=${categoryId}&quantity=${quantity}&totalPrice=${totalPrice}`
+        );
 
-      if (response.ok) {
-        const data = await response.json();
-        setDiscount(data.discountApplied || 0);
-      } else {
-        console.error("Failed to fetch discount");
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.finalPrice !== undefined) {
+            const categoryDiscount = totalPrice - data.finalPrice; // Compute discount for this category
+            totalDiscount += categoryDiscount;
+            updatedFinalPrice -= categoryDiscount;
+          }
+        } else {
+          console.error(`Failed to fetch discount for category ${categoryId}`);
+        }
       }
+
+      // Apply total discount to cart
+      setDiscount(totalDiscount);
+      updateCartTotals(cartItems, totalDiscount, updatedFinalPrice);
     } catch (error) {
       console.error("Error fetching discount:", error);
     }
@@ -136,29 +155,35 @@ const Cart = ({ cartItems, setCartItems }) => {
 
   // Watch for cartItems changes
   useEffect(() => {
-    updateCartTotals(cartItems);
-    fetchDiscount(); // Fetch discount after calculating subtotal
+    if (cartItems.length) {
+      fetchDiscount();
+    }
   }, [cartItems]);
 
   // Function to update cart totals
-  const updateCartTotals = (items) => {
+  const updateCartTotals = (
+    items,
+    appliedDiscount = discount,
+    finalPrice = subtotal
+  ) => {
     const newSubtotal = items.reduce(
       (total, item) => total + item.price * item.quantity,
       0
     );
+    const newTotal = finalPrice + shippingCost; // Use API's finalPrice
+
     setSubtotal(newSubtotal);
-    const newTotal = newSubtotal + shippingCost - discount;
     setTotal(newTotal);
+    setDiscount(appliedDiscount); // Keep the discount updated
 
     // Update cartFromServer with the new totals
     if (cartFromServer) {
-      const updatedCartFromServer = {
+      SetCartFromServer({
         ...cartFromServer,
         totalPrice: newSubtotal,
-        discountApplied: discount,
+        discountApplied: appliedDiscount,
         finalPrice: newTotal,
-      };
-      SetCartFromServer(updatedCartFromServer);
+      });
     }
   };
 
@@ -332,13 +357,6 @@ const Cart = ({ cartItems, setCartItems }) => {
     }
   };
 
-  const order = {
-    totalPrice: subtotal,
-    shippingCost: shippingCost,
-    discountApplied: discount,
-    finalPrice: total,
-  };
-
   return (
     <section className='cart'>
       <OrderSuccessPopup
@@ -448,7 +466,10 @@ const Cart = ({ cartItems, setCartItems }) => {
                         <tr>
                           <td>Items</td>
                           <td className='text-center fw-bold'>
-                            {cartItems.length}
+                            {cartItems.reduce(
+                              (total, item) => total + item.quantity,
+                              0
+                            )}
                           </td>
                         </tr>
                         <tr>
@@ -460,13 +481,13 @@ const Cart = ({ cartItems, setCartItems }) => {
                         <tr>
                           <td>Shipping</td>
                           <td className='text-center fw-bold'>
-                            {order.shippingCost}EGP
+                            {cartFromServer?.deliveryCost}EGP
                           </td>
                         </tr>
                         <tr>
                           <td>Discount</td>
                           <td className='text-center fw-bold'>
-                            {cartFromServer?.discountApplied}EGP
+                            {cartFromServer?.discountApplied ?? discount}EGP
                           </td>
                         </tr>
                         <tr className='fw-bold'>

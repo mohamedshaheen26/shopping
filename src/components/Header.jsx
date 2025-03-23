@@ -95,7 +95,12 @@ const Header = ({ cartItems }) => {
                   <Link className='cart_icon' to='/cart' title='Add to Cart'>
                     <img src='../../assets/cart.png' alt='Cart' />
                     {cartItems.length > 0 ? (
-                      <span className='cart-count'>{cartItems.length}</span>
+                      <span className='cart-count'>
+                        {cartItems.reduce(
+                          (total, item) => total + item.quantity,
+                          0
+                        )}
+                      </span>
                     ) : (
                       <span className='cart-count'>0</span>
                     )}
