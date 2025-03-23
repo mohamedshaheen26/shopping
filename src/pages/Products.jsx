@@ -19,6 +19,7 @@ const Shop = ({ addToCart }) => {
   const [alertType, setAlertType] = useState("");
   const location = useLocation();
 
+  const [categories, setCategories] = useState([]); // State for categories
   const [categoryName, setCategoryName] = useState("");
   const [productName, setProductName] = useState("");
 
@@ -26,6 +27,11 @@ const Shop = ({ addToCart }) => {
   const [isSaving, setIsSaving] = useState(false); // Loader state
   const [selectedCountry, setSelectedCountry] = useState(""); // Track selected country
   const [selectedProduct, setSelectedProduct] = useState(null); // Track selected product
+
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 }); // Default price range
+  const [availability, setAvailability] = useState("all");
+  const [sortBy, setSortBy] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(""); // Track selected category
 
   const userId = localStorage.getItem("userId");
 
@@ -41,11 +47,26 @@ const Shop = ({ addToCart }) => {
     } else {
       fetchProducts();
     }
+    fetchCategories(); // Fetch categories when the component mounts
   }, [categoryId, productId, location.pathname]);
 
   useEffect(() => {
+    if (categoryId) {
+      setSelectedCategory(categoryId); // Automatically select the opened category
+    }
+  }, [categoryId]);
+
+  useEffect(() => {
     filterProducts();
-  }, [categoryId, searchTerm, products]);
+  }, [
+    categoryId,
+    searchTerm,
+    products,
+    priceRange,
+    availability,
+    sortBy,
+    selectedCategory,
+  ]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -55,10 +76,32 @@ const Shop = ({ addToCart }) => {
       const data = await response.json();
       setProducts(data || []);
       setFilteredProducts(data || []);
+
+      // If a category is selected, fetch its name
+      if (categoryId) {
+        const categoryResponse = await fetch(
+          `${API_BASE_URL}/Category/GetById/${categoryId}`
+        );
+        if (categoryResponse.ok) {
+          const categoryData = await categoryResponse.json();
+          setCategoryName(categoryData.name || ""); // Set Category Name
+        }
+      }
     } catch (error) {
       showAlert("Failed to load products.", "danger");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/Category/AllCategories`);
+      if (!response.ok) throw new Error("Failed to fetch categories");
+      const data = await response.json();
+      setCategories(data || []);
+    } catch (error) {
+      showAlert("Failed to load categories.", "danger");
     }
   };
 
@@ -97,10 +140,44 @@ const Shop = ({ addToCart }) => {
       );
     }
 
+    // Filter by category
+    if (selectedCategory) {
+      updatedProducts = updatedProducts.filter(
+        (product) => product.categoryId === Number(selectedCategory)
+      );
+    }
+
+    // Filter by search term
     if (searchTerm) {
       updatedProducts = updatedProducts.filter((product) =>
         product.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
+    }
+
+    // Filter by price range
+    updatedProducts = updatedProducts.filter(
+      (product) =>
+        product.price >= priceRange.min && product.price <= priceRange.max
+    );
+
+    // Filter by availability
+    if (availability === "available") {
+      updatedProducts = updatedProducts.filter((product) => product.stock > 0);
+    } else if (availability === "unavailable") {
+      updatedProducts = updatedProducts.filter(
+        (product) => product.stock === 0
+      );
+    }
+
+    // Sort products
+    if (sortBy === "priceLowToHigh") {
+      updatedProducts.sort((a, b) => a.price - b.price);
+    } else if (sortBy === "priceHighToLow") {
+      updatedProducts.sort((a, b) => b.price - a.price);
+    } else if (sortBy === "nameAtoZ") {
+      updatedProducts.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "nameZtoA") {
+      updatedProducts.sort((a, b) => b.name.localeCompare(a.name));
     }
 
     setFilteredProducts(updatedProducts);
@@ -176,21 +253,104 @@ const Shop = ({ addToCart }) => {
       <div className='container'>
         {alertMessage && <Alert message={alertMessage} type={alertType} />}
 
-        {/* Search Box */}
-        <div className='row mb-2 justify-content-center'>
-          <div className='col-md-6 mb-2'>
-            <div className='form-group has-search'>
-              <span className='fa fa-search form-control-search'></span>
-              <input
-                type='text'
-                className='form-control search'
-                placeholder='Search'
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        {!singleProduct && (
+          <>
+            {/* Search Box */}
+            <div className='row mb-2 justify-content-center'>
+              <div className='col-md-6 mb-2'>
+                <div className='form-group has-search'>
+                  <span className='fa fa-search form-control-search'></span>
+                  <input
+                    type='text'
+                    className='form-control search'
+                    placeholder='Search'
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+
+            {/* Filter Options - Hide if single product is being viewed */}
+
+            <div className='row mb-4'>
+              <div className='col-md-3'>
+                <label className='form-label' htmlFor='priceRange'>
+                  Price
+                </label>
+                <input
+                  type='range'
+                  className='form-range styled-range'
+                  id='priceRange'
+                  min={0}
+                  max={10000}
+                  value={priceRange.max}
+                  onChange={(e) =>
+                    setPriceRange({
+                      ...priceRange,
+                      max: Number(e.target.value),
+                    })
+                  }
+                />
+                <div className='d-flex justify-content-between'>
+                  <span>${priceRange.min}</span>
+                  <span>${priceRange.max}</span>
+                </div>
+              </div>
+              <div className='col-md-3'>
+                <label className='form-label' htmlFor='category'>
+                  Category
+                </label>
+                <select
+                  className='form-select'
+                  id='category'
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  disabled={!!categoryId} // Disable if categoryId is present
+                >
+                  <option value=''>All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className='col-md-3'>
+                <label className='form-label' htmlFor='availability'>
+                  Availability
+                </label>
+                <select
+                  className='form-select'
+                  id='availability'
+                  value={availability}
+                  onChange={(e) => setAvailability(e.target.value)}
+                >
+                  <option value='all'>All</option>
+                  <option value='available'>Available</option>
+                  <option value='unavailable'>Unavailable</option>
+                </select>
+              </div>
+              <div className='col-md-3'>
+                <label className='form-label' htmlFor='sortBy'>
+                  Sort By
+                </label>
+                <select
+                  className='form-select'
+                  id='sortBy'
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value=''>Default Sort</option>
+                  <option value='priceLowToHigh'>Price: Low to High</option>
+                  <option value='priceHighToLow'>Price: High to Low</option>
+                  <option value='nameAtoZ'>Name: A to Z</option>
+                  <option value='nameZtoA'>Name: Z to A</option>
+                </select>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Breadcrumb */}
         <nav aria-label='breadcrumb'>
@@ -198,7 +358,11 @@ const Shop = ({ addToCart }) => {
             <li className='breadcrumb-item'>
               <Link to='/'>Home</Link>
             </li>
-            <li className='breadcrumb-item'>
+            <li
+              className={`breadcrumb-item  ${
+                categoryId || productId ? "" : "active"
+              }`}
+            >
               {categoryId || productId ? (
                 <Link to='/products'>All Products</Link>
               ) : (
