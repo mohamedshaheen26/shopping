@@ -591,6 +591,13 @@ nav ul a.active {
   height: 400px;
 }
 
+@media (max-width: 768px) {
+  .discount img {
+    width: 100%;
+    height: auto;
+  }
+}
+
 /* SHOP SECTION  */
 .shop,
 .admin,
@@ -839,9 +846,6 @@ input[type="range"]::-moz-range-thumb {
   .container {
     width: 90%;
     margin: 0 auto;
-  }
-  section {
-    padding: 3rem 0 2rem;
   }
 }
 
