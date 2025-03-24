@@ -101,7 +101,7 @@ const Home = () => {
 
   return (
     <>
-      <section className='hero-section'>
+      <section className='hero-section mb-5'>
         <ToastContainer style={{ zIndex: 99999999 }} />
         <div className='hero-content'>
           <h1 className='hero-headline'>New Season, New Style!</h1>
@@ -111,7 +111,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className='products-section'>
+      <section className='categories-section mb-5'>
         <h1 className='section-title mb-4'>Categories</h1>
         {loading ? (
           <Loading />
@@ -152,16 +152,16 @@ const Home = () => {
           </ul>
         )}
       </section>
-      <section className='collection'>
+      <section className='collection mb-5'>
         <h1 className='section-title mb-4'>All Collections</h1>
         <Slider images={allCollection} itemsPerSlide={3} />
       </section>
-      <section className='discount'>
+      <section className='discount mb-5'>
         <div className='container'>
           <img src='../assets/discount.jpg' alt='discount' />
         </div>
       </section>
-      <section className='trending'>
+      <section className='trending mb-5'>
         <h1 className='section-title mb-4'>Trending</h1>
         <Slider images={trending} itemsPerSlide={3} />
       </section>
