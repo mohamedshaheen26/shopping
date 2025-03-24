@@ -27,7 +27,11 @@ const Shop = ({ addToCart }) => {
   const [selectedCountry, setSelectedCountry] = useState(""); // Track selected country
   const [selectedProduct, setSelectedProduct] = useState(null); // Track selected product
 
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 }); // Default price range
+  const [priceRange, setPriceRange] = useState({
+    min: 0, // Will be set to actual min price after fetch
+    max: 10000, // Will be set to actual max price after fetch
+    currentMax: 10000, // Current selected max value
+  });
   const [availability, setAvailability] = useState("all");
   const [sortBy, setSortBy] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(""); // Track selected category
@@ -69,6 +73,19 @@ const Shop = ({ addToCart }) => {
       const data = await response.json();
       setProducts(data || []);
       setFilteredProducts(data || []);
+
+      // Calculate min/max prices
+      if (data && data.length > 0) {
+        const prices = data.map((product) => product.price);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+
+        setPriceRange({
+          min: minPrice,
+          max: maxPrice,
+          currentMax: maxPrice, // Initialize to max price
+        });
+      }
 
       // If a category is selected, fetch its name
       if (categoryId) {
@@ -148,6 +165,11 @@ const Shop = ({ addToCart }) => {
   const filterProducts = () => {
     let updatedProducts = [...products];
 
+    // Filter by price range (0 to currentMax)
+    updatedProducts = updatedProducts.filter(
+      (product) => product.price <= priceRange.currentMax
+    );
+
     if (categoryId) {
       updatedProducts = updatedProducts.filter(
         (product) => product.categoryId === Number(categoryId)
@@ -222,7 +244,6 @@ const Shop = ({ addToCart }) => {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            mode: "no-cors",
           }
         );
 
@@ -241,7 +262,6 @@ const Shop = ({ addToCart }) => {
             productId: product.id,
             quantity: 1,
           }),
-          mode: "cors",
         }
       );
 
@@ -302,19 +322,21 @@ const Shop = ({ addToCart }) => {
                   type='range'
                   className='form-range styled-range'
                   id='priceRange'
-                  min={0}
-                  max={10000}
-                  value={priceRange.max}
-                  onChange={(e) =>
+                  min={priceRange.min}
+                  max={priceRange.max}
+                  value={priceRange.currentMax}
+                  onChange={(e) => {
                     setPriceRange({
                       ...priceRange,
-                      max: Number(e.target.value),
-                    })
-                  }
+                      currentMax: Number(e.target.value),
+                    });
+                    // Optional: Add debounce here if performance is an issue
+                  }}
+                  step={1} // Or use appropriate step value
                 />
                 <div className='d-flex justify-content-between'>
                   <span>${priceRange.min}</span>
-                  <span>${priceRange.max}</span>
+                  <span>${priceRange.currentMax}</span>
                 </div>
               </div>
               <div className='col-md-3'>
