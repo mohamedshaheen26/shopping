@@ -59,28 +59,29 @@ function Login() {
 
     // Proceed with login
     try {
-      const response = await fetch(
-        "https://nshopping.runasp.net/api/Users/Login",
-        {
-          method: "POST",
-          headers: {
-            accept: "*/*",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/Users/Login`, {
+        method: "POST",
+        headers: {
+          accept: "*/*",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await response.json();
 
       if (response.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.id);
+        localStorage.setItem(
+          "userName",
+          `${data.firstName + " " + data.lastName}`
+        );
 
         setLoading(false);
         navigate("/");
       } else {
-        setError(data.message || "Invalid email or password.");
+        setError(data.message || "Login failed.");
       }
     } catch (err) {
       setError("An error occurred while processing your request.");

@@ -2,6 +2,8 @@ import { React, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Slider from "../components/Slider";
 import Loading from "../components/Loading";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { API_BASE_URL } from "../config";
 
@@ -40,6 +42,26 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const userName = localStorage.getItem("userName");
+
+    if (userName) {
+      toast.success(`👋 Welcome Back, ${userName}!`, {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+        style: { width: "350px" },
+      });
+      // Remove AFTER the toast is displayed (5 seconds later)
+      setTimeout(() => {
+        localStorage.removeItem("userName");
+      }, 5000);
+    }
+  }, []);
+
   // Fetch categories & products
   useEffect(() => {
     const fetchCategoriesWithRandomImages = async () => {
@@ -61,7 +83,14 @@ const Home = () => {
         setCategories(categoriesData);
         setProducts(productsData);
       } catch (error) {
-        console.error("Error fetching categories or products:", error);
+        toast.error(`Failed to load categories`, {
+          position: "top-left",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          closeButton: false,
+        });
       } finally {
         setLoading(false);
       }
@@ -73,6 +102,7 @@ const Home = () => {
   return (
     <>
       <section className='hero-section'>
+        <ToastContainer style={{ zIndex: 99999999 }} />
         <div className='hero-content'>
           <h1 className='hero-headline'>New Season, New Style!</h1>
           <Link to='/products' className='hero-button'>

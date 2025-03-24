@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-import Alert from "../components/Alert";
 import Loading from "../components/Loading";
 import SimilarProducts from "../components/SimilarProducts";
 import Modal from "../components/Modal";
@@ -15,8 +16,6 @@ const Shop = ({ addToCart }) => {
   const [singleProduct, setSingleProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
   const location = useLocation();
 
   const [categories, setCategories] = useState([]); // State for categories
@@ -34,12 +33,6 @@ const Shop = ({ addToCart }) => {
   const [selectedCategory, setSelectedCategory] = useState(""); // Track selected category
 
   const userId = localStorage.getItem("userId");
-
-  const showAlert = (message, type) => {
-    setAlertMessage(message);
-    setAlertType(type);
-    setTimeout(() => setAlertMessage(""), 3000);
-  };
 
   useEffect(() => {
     if (productId) {
@@ -88,7 +81,14 @@ const Shop = ({ addToCart }) => {
         }
       }
     } catch (error) {
-      showAlert("Failed to load products.", "danger");
+      toast.error(`Failed to load products.`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -101,7 +101,14 @@ const Shop = ({ addToCart }) => {
       const data = await response.json();
       setCategories(data || []);
     } catch (error) {
-      showAlert("Failed to load categories.", "danger");
+      toast.error(`Failed to load categories`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
     }
   };
 
@@ -125,7 +132,14 @@ const Shop = ({ addToCart }) => {
         }
       }
     } catch (error) {
-      showAlert("Failed to load product details.", "danger");
+      toast.error(`Failed to load product details.`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -186,13 +200,13 @@ const Shop = ({ addToCart }) => {
   const handleAddToCart = async (product, countryCode) => {
     addToCart(product);
     setIsSaving(true); // Show loading spinner
-    console.log(userId);
+
     try {
       let cartId = null;
 
       // Step 1: Get the user's cart
       const cartResponse = await fetch(
-        `https://nshopping.runasp.net/api/Cart/GetByUser/${userId}`,
+        `${API_BASE_URL}/Cart/GetByUser/${userId}`,
         { method: "GET", headers: { "Content-Type": "application/json" } }
       );
 
@@ -204,7 +218,7 @@ const Shop = ({ addToCart }) => {
       // Step 2: If no cart exists, create a new one with delivery
       if (!cartId) {
         const createCartResponse = await fetch(
-          `https://nshopping.runasp.net/api/Cart/Create/${userId}?delivery=${countryCode}`,
+          `${API_BASE_URL}/Cart/Create/${userId}?delivery=${countryCode}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -219,7 +233,7 @@ const Shop = ({ addToCart }) => {
 
       // Step 3: Add item to cart
       const addItemResponse = await fetch(
-        `https://nshopping.runasp.net/api/Cart/AddItem/${cartId}?delivery=${countryCode}`,
+        `${API_BASE_URL}/Cart/AddItem/${cartId}?delivery=${countryCode}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -233,7 +247,14 @@ const Shop = ({ addToCart }) => {
 
       const addItemData = await addItemResponse.json();
 
-      showAlert("Item added to cart!", "success");
+      toast.success(`Item added to cart!`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
     } catch (error) {
       console.error("Error adding item to cart:", error);
     } finally {
@@ -250,9 +271,8 @@ const Shop = ({ addToCart }) => {
 
   return (
     <section className='shop'>
+      <ToastContainer style={{ zIndex: 99999999 }} />
       <div className='container'>
-        {alertMessage && <Alert message={alertMessage} type={alertType} />}
-
         {!singleProduct && (
           <>
             {/* Search Box */}

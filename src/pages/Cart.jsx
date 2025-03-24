@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import OrderSuccessPopup from "../components/OrderSuccessPopup";
-import Alert from "../components/Alert";
 import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { API_BASE_URL } from "../config";
 
@@ -15,16 +16,8 @@ const Cart = ({ cartItems, setCartItems }) => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const userId = localStorage.getItem("userId");
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
   const [cartFromServer, SetCartFromServer] = useState(null);
   const navigate = useNavigate();
-
-  const showAlert = (message, type) => {
-    setAlertMessage(message);
-    setAlertType(type);
-    setTimeout(() => setAlertMessage(""), 3000);
-  };
 
   // const fetchProductImage = async (productId) => {
   //   try {
@@ -261,7 +254,14 @@ const Cart = ({ cartItems, setCartItems }) => {
   // Checkout function
   const checkout = async () => {
     if (!userId) {
-      showAlert("You must be logged in to checkout", "warning");
+      toast.warning(`You must be logged in to checkout`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
       return;
     }
 
@@ -273,15 +273,16 @@ const Cart = ({ cartItems, setCartItems }) => {
       })),
     };
 
-    // Validate the payload
-    if (!userId) {
-      showAlert("Invalid user ID", "warning");
-      return;
-    }
-
     for (const item of cartItems) {
       if (!item.productId || item.quantity <= 0) {
-        showAlert("Invalid product ID or quantity", "warning");
+        toast.success(`Invalid product ID or quantity.`, {
+          position: "top-left",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          draggable: true,
+          closeButton: false,
+        });
         return;
       }
     }
@@ -322,10 +323,14 @@ const Cart = ({ cartItems, setCartItems }) => {
       navigate("/orderDetails");
     } catch (error) {
       console.error("Checkout error:", error);
-      showAlert(
-        error.message || "Failed to complete the purchase. Please try again.",
-        "danger"
-      );
+      toast.error(`Failed to complete the purchase. Please try again.`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -359,12 +364,13 @@ const Cart = ({ cartItems, setCartItems }) => {
 
   return (
     <section className='cart'>
+      <ToastContainer style={{ zIndex: 99999999 }} />
+
       <OrderSuccessPopup
         show={showModal}
         handleClose={() => setShowModal(false)}
       />
       <div className='container'>
-        {alertMessage && <Alert message={alertMessage} type={alertType} />}
         {loading ? (
           <Loading />
         ) : cartItems.length > 0 ? (
