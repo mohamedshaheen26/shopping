@@ -16,7 +16,9 @@ const Cart = ({ cartItems, setCartItems }) => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const userId = localStorage.getItem("userId");
-  const [cartFromServer, SetCartFromServer] = useState(null);
+  const [region, setRegion] = useState("");
+  const [showRegion, setShowRegion] = useState(false);
+  const [cartFromServer, setCartFromServer] = useState(null);
   const navigate = useNavigate();
 
   // const fetchProductImage = async (productId) => {
@@ -126,7 +128,7 @@ const Cart = ({ cartItems, setCartItems }) => {
               })
             );
 
-            SetCartFromServer(serverCart);
+            setCartFromServer(serverCart);
             setCartId(serverCart.id);
             setShippingCost(serverCart.deliveryCost || 0);
             setDiscount(serverCart.discountApplied || 0);
@@ -171,7 +173,7 @@ const Cart = ({ cartItems, setCartItems }) => {
 
     // Update cartFromServer with the new totals
     if (cartFromServer) {
-      SetCartFromServer({
+      setCartFromServer({
         ...cartFromServer,
         totalPrice: newSubtotal,
         discountApplied: appliedDiscount,
@@ -208,7 +210,7 @@ const Cart = ({ cartItems, setCartItems }) => {
         discountApplied: discount,
         finalPrice: total,
       };
-      SetCartFromServer(updatedCartFromServer);
+      setCartFromServer(updatedCartFromServer);
     } catch (error) {
       console.error("Error removing item from server cart:", error);
     }
@@ -251,8 +253,12 @@ const Cart = ({ cartItems, setCartItems }) => {
     // }
   };
 
+  const checkout = () => {
+    setShowRegion(true);
+  };
+
   // Checkout function
-  const checkout = async () => {
+  const placeOrder = async () => {
     if (!userId) {
       toast.warning(`You must be logged in to checkout`, {
         position: "top-left",
@@ -271,6 +277,7 @@ const Cart = ({ cartItems, setCartItems }) => {
         productId,
         quantity,
       })),
+      region: region,
     };
 
     for (const item of cartItems) {
@@ -288,14 +295,17 @@ const Cart = ({ cartItems, setCartItems }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/Order/Create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(orderPayload),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/Order/Create?region=${region}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(orderPayload),
+        }
+      );
 
       // Check if the response is JSON
       const contentType = response.headers.get("content-type");
@@ -320,7 +330,7 @@ const Cart = ({ cartItems, setCartItems }) => {
       updateCartTotals([]);
 
       setShowModal(true); // Show success modal
-      navigate("/orderDetails");
+      setShowRegion(false);
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(`Failed to complete the purchase. Please try again.`, {
@@ -368,7 +378,10 @@ const Cart = ({ cartItems, setCartItems }) => {
 
       <OrderSuccessPopup
         show={showModal}
-        handleClose={() => setShowModal(false)}
+        handleClose={() => {
+          setShowModal(false);
+          navigate("/orderDetails");
+        }}
       />
       <div className='container'>
         {loading ? (
@@ -505,12 +518,38 @@ const Cart = ({ cartItems, setCartItems }) => {
                       </tbody>
                     </table>
                   </div>
-                  <button
-                    className='btn btn-primary btn-buy w-100'
-                    onClick={checkout}
-                  >
-                    Checkout
-                  </button>
+                  {showRegion && (
+                    <div className='card-body mt-3 p-2 checkout'>
+                      <label className='form-label'>Select Region</label>
+                      <select
+                        className='form-select'
+                        value={region}
+                        onChange={(e) => setRegion(e.target.value)}
+                      >
+                        <option value=''>Select</option>
+                        <option value='0'>Tanta</option>
+                        <option value='1'>Cairo</option>
+                        <option value='2'>UpperEgypt</option>
+                        <option value='3'>Alexadria</option>
+                        <option value='4'>Mansoura</option>
+                      </select>
+                    </div>
+                  )}
+                  {showRegion ? (
+                    <button
+                      className='btn btn-primary btn-buy w-100'
+                      onClick={placeOrder}
+                    >
+                      Place Your Order
+                    </button>
+                  ) : (
+                    <button
+                      className='btn btn-primary btn-buy w-100'
+                      onClick={checkout}
+                    >
+                      Checkout
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

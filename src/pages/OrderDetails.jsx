@@ -68,8 +68,30 @@ const OrderDetails = () => {
     fetchTrackingData();
   }, [cart]);
 
+  // Function to convert date difference to human-readable format
+  function convertToHumanReadableDate(dateString) {
+    const targetDate = new Date(dateString);
+    const currentDate = new Date();
+
+    // Calculate the difference in time (in milliseconds)
+    const timeDifference = targetDate - currentDate;
+
+    // Convert time difference to days
+    const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+    if (daysDifference === 0) {
+      return "Today";
+    } else if (daysDifference === 1) {
+      return "1 day";
+    } else if (daysDifference < 0) {
+      return `${Math.abs(daysDifference)} days`;
+    } else {
+      return `${daysDifference} days`;
+    }
+  }
+
   return (
-    <section className='order-details'>
+    <section className='order-details pb-5'>
       <div className='container'>
         {loading ? (
           <Loading />
@@ -102,18 +124,22 @@ const OrderDetails = () => {
                     <ul className='ms-4'>
                       <li>
                         <strong>Region:</strong>{" "}
-                        <span className='text-muted'>{cart?.region}</span>
+                        <span className='text-muted'>{order?.region}</span>
                       </li>
                       <li>
                         <strong>Delivery Status:</strong>{" "}
                         <span className='text-primary'>
-                          {tracking?.status || "N/A"}
+                          {order?.status || "N/A"}
                         </span>
                       </li>
                       <li>
                         <strong>Estimated Delivery:</strong>{" "}
                         <span className='text-success'>
-                          {tracking?.estimatedDeliveryTime || "N/A"}
+                          {order?.status !== "Canceled"
+                            ? convertToHumanReadableDate(
+                                order?.estimatedDeliveryTime
+                              )
+                            : "---"}
                         </span>
                       </li>
                     </ul>
@@ -121,32 +147,34 @@ const OrderDetails = () => {
 
                   {/* ✅ Products in the Order */}
                   <h4 className='fw-bold mt-4'>Products in this Order:</h4>
-                  {order.items.slice(1).map((item) => (
-                    <div
-                      key={item.id}
-                      className='mt-3 border-bottom pb-3 d-flex flex-column flex-lg-row align-items-start gap-3'
-                    >
-                      {/* ✅ Display Product Image */}
-                      {/* <img
+                  {order.items
+                    .filter((item) => item.price > 0 && item.totalPrice > 0)
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className='mt-3 border-bottom pb-3 d-flex flex-column flex-lg-row align-items-start gap-3'
+                      >
+                        {/* ✅ Display Product Image */}
+                        {/* <img
                     src={item.imageUrl}
                     alt={item.productName}
                     className='rounded bg-light'
                     width='124'
                     height='124'
                   /> */}
-                      <div>
-                        <h5 className='fw-bold'>{item.productName}</h5>
-                        <p>
-                          <strong>Price:</strong>{" "}
-                          <span className='text-muted'>${item.price}</span>
-                        </p>
-                        <p>
-                          <strong>Quantity:</strong> {item.quantity}
-                        </p>
-                        <h5 className='fw-bold'>Total: ${item.totalPrice}</h5>
+                        <div>
+                          <h5 className='fw-bold'>{item.productName}</h5>
+                          <p>
+                            <strong>Price:</strong>{" "}
+                            <span className='text-muted'>${item.price}</span>
+                          </p>
+                          <p>
+                            <strong>Quantity:</strong> {item.quantity}
+                          </p>
+                          <h5 className='fw-bold'>Total: ${item.totalPrice}</h5>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
 
                   {/* ✅ Order Summary */}
                   <div className='mt-4 text-end'>
