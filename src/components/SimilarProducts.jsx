@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import Alert from "./Alert";
 import Loading from "./Loading";
 import Modal from "./Modal";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import { API_BASE_URL } from "../config";
 
@@ -10,19 +11,12 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
   const { categoryId } = useParams(); // Get categoryId from URL
   const [similarProducts, setSimilarProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState("");
 
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false); // Loader state
   const [selectedCountry, setSelectedCountry] = useState(""); // Track selected country
   const [selectedProduct, setSelectedProduct] = useState(null); // Track selected product
 
-  const showAlert = (message, type) => {
-    setAlertMessage(message);
-    setAlertType(type);
-    setTimeout(() => setAlertMessage(""), 3000);
-  };
   useEffect(() => {
     if (!userId || !categoryId) return;
 
@@ -101,7 +95,21 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
 
       if (!addItemResponse.ok) throw new Error("Failed to add item to cart");
 
-      showAlert("Item added to cart!", "success");
+      // Decrement stock locally
+      const updatedProducts = similarProducts.map((p) =>
+        p.id === product.id ? { ...p, stock: p.stock - 1 } : p
+      );
+
+      setSimilarProducts(updatedProducts); // Update main products list
+
+      toast.success(`Item added to cart!`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
     } catch (error) {
       console.error("Error adding item to cart:", error);
     } finally {
@@ -118,7 +126,7 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
 
   return (
     <div className='similar-products'>
-      {alertMessage && <Alert message={alertMessage} type={alertType} />}
+      <ToastContainer style={{ zIndex: 99999999 }} />
       <h2>Similar Products</h2>
       <div className='row' id='similarProducts'>
         {loading ? (
@@ -140,28 +148,33 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
                     <span className='product-price'>{product.price}EGP</span>
                   </div>
                   <div className='text-warning mb-3'>
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <i
-                        key={index}
-                        className={
-                          index < product.rating ? "fas fa-star" : "far fa-star"
-                        }
-                      ></i>
-                    ))}
-                    <span className='text-muted'> Available</span>
+                    <i className='fas fa-star'></i>
+                    <i className='fas fa-star'></i>
+                    <i className='fas fa-star'></i>
+                    <i className='fas fa-star'></i>
+                    <i className='far fa-star'></i>
+                    <span className='text-muted mx-2'>
+                      {product.stock > 0 ? "Available" : "Unavailable"}
+                    </span>
                   </div>
                   <div className='d-flex justify-content-evenly'>
                     <button
-                      className={`add-cart border-0 ${
-                        product.stock > 0 ? "" : "disabled"
-                      }`}
+                      className={`add-cart border-0`}
                       onClick={() => {
                         setSelectedProduct(product);
                         setIsCartModalOpen(true);
                       }}
                       disabled={product.stock === 0}
                     >
-                      Add to Cart <i className='fas fa-shopping-cart'></i>
+                      {product.stock > 0 ? (
+                        <>
+                          Add to Cart <i className='fas fa-shopping-cart'></i>
+                        </>
+                      ) : (
+                        <>
+                          Out of Stock <i className='fas fa-ban'></i>
+                        </>
+                      )}
                     </button>
                     <Link
                       to={`/products/${product.categoryId}/${product.id}`}

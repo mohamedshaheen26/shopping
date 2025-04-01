@@ -771,6 +771,10 @@ input[type="range"]::-moz-range-thumb {
   background-color: hsl(249, 32%, 17%);
 }
 
+.add-cart:disabled {
+  pointer-events: none;
+}
+
 .view-product {
   background-color: rgba(117, 117, 117, 0.34);
   color: var(--sec-color);

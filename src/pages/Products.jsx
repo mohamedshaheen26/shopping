@@ -220,6 +220,19 @@ const Shop = ({ addToCart }) => {
   };
 
   const handleAddToCart = async (product, countryCode) => {
+    if (product.stock == 0) {
+      toast.warning(`Unavaliable in stock`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
+      setIsCartModalOpen(false);
+      return;
+    }
+
     addToCart(product);
     setIsSaving(true); // Show loading spinner
 
@@ -266,6 +279,19 @@ const Shop = ({ addToCart }) => {
       );
 
       const addItemData = await addItemResponse.json();
+
+      // Decrement stock locally
+      const updatedProducts = products.map((p) =>
+        p.id === product.id ? { ...p, stock: p.stock - 1 } : p
+      );
+
+      setProducts(updatedProducts); // Update main products list
+      setFilteredProducts(updatedProducts); // Update filtered list
+
+      // If viewing a single product, update its stock too
+      if (singleProduct && singleProduct.id === product.id) {
+        setSingleProduct({ ...singleProduct, stock: singleProduct.stock - 1 });
+      }
 
       toast.success(`Item added to cart!`, {
         position: "top-left",
@@ -447,18 +473,27 @@ const Shop = ({ addToCart }) => {
                 <i className='fas fa-star'></i>
                 <i className='fas fa-star'></i>
                 <i className='far fa-star'></i>
+                <span className='text-muted mx-2'>
+                  {singleProduct.stock > 0 ? "Available" : "Unavailable"}
+                </span>
               </div>
               <button
-                className={`add-cart border-0 ${
-                  singleProduct.stock > 0 ? "" : "disabled"
-                }`}
+                className={`add-cart border-0`}
                 onClick={() => {
                   setSelectedProduct(singleProduct);
                   setIsCartModalOpen(true);
                 }}
                 disabled={singleProduct.stock === 0}
               >
-                Add to Cart <i className='fas fa-shopping-cart'></i>
+                {singleProduct.stock > 0 ? (
+                  <>
+                    Add to Cart <i className='fas fa-shopping-cart'></i>
+                  </>
+                ) : (
+                  <>
+                    Out of Stock <i className='fas fa-ban'></i>
+                  </>
+                )}
               </button>
             </div>
             <div className='col-md-4'>
@@ -496,22 +531,29 @@ const Shop = ({ addToCart }) => {
                           <i className='fas fa-star'></i>
                           <i className='fas fa-star'></i>
                           <i className='far fa-star'></i>
-                          <span className='text-muted'>
+                          <span className='text-muted mx-2'>
                             {product.stock > 0 ? "Available" : "Unavailable"}
                           </span>
                         </div>
                         <div className='d-flex justify-content-evenly'>
                           <button
-                            className={`add-cart border-0 ${
-                              product.stock > 0 ? "" : "disabled"
-                            }`}
+                            className={`add-cart border-0`}
                             onClick={() => {
                               setSelectedProduct(product);
                               setIsCartModalOpen(true);
                             }}
                             disabled={product.stock === 0}
                           >
-                            Add to Cart <i className='fas fa-shopping-cart'></i>
+                            {product.stock > 0 ? (
+                              <>
+                                Add to Cart{" "}
+                                <i className='fas fa-shopping-cart'></i>
+                              </>
+                            ) : (
+                              <>
+                                Out of Stock <i className='fas fa-ban'></i>
+                              </>
+                            )}
                           </button>
                           <Link
                             to={`/products/${product.categoryId}/${product.id}`}
