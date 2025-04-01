@@ -151,7 +151,7 @@ const OrderDetails = () => {
                     .filter((item) => item.price > 0 && item.totalPrice > 0)
                     .map((item) => (
                       <div
-                        key={item.id}
+                        key={`${item.productId}-${item.price}-${item.quantity}`}
                         className='mt-3 border-bottom pb-3 d-flex flex-column flex-lg-row align-items-start gap-3'
                       >
                         {/* ✅ Display Product Image */}

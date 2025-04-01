@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-const Header = ({ cartItems }) => {
+const Header = ({ cartItems, favorites }) => {
   const location = useLocation();
   const userId = localStorage.getItem("userId");
   useEffect(() => {
@@ -82,15 +82,12 @@ const Header = ({ cartItems }) => {
                     <img src='../../assets/search_icon.png' alt='Search' />
                   </Link>
                 </li>
-                {/* <li>
-                  <Link
-                    className='favorite_icon'
-                    to='/favorites'
-                    title='Favorites'
-                  >
+                <li>
+                  <Link className='fav_icon' to='/favorites' title='Favorites'>
                     <img src='../../assets/favorite.png' alt='Favorites' />
+                    <span className='fav-count'>{favorites.length}</span>
                   </Link>
-                </li> */}
+                </li>
                 <li>
                   <Link className='cart_icon' to='/cart' title='Add to Cart'>
                     <img src='../../assets/cart.png' alt='Cart' />

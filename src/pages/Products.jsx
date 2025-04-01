@@ -9,7 +9,7 @@ import Modal from "../components/Modal";
 
 import { API_BASE_URL } from "../config";
 
-const Shop = ({ addToCart }) => {
+const Shop = ({ addToCart, toggleFavorite, favorites }) => {
   const { categoryId, productId } = useParams();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -496,14 +496,31 @@ const Shop = ({ addToCart }) => {
                 )}
               </button>
             </div>
-            <div className='col-md-4'>
+            <div className='col-md-4 position-relative'>
               <img
                 src={singleProduct.imageUrl}
                 alt={singleProduct.name}
                 className='img-fluid'
               />
+              <button
+                className='single-view-favorite'
+                onClick={() => toggleFavorite(singleProduct)}
+              >
+                <i
+                  className={`${
+                    favorites.some((fav) => fav.id === singleProduct.id)
+                      ? "fas fa-heart checked"
+                      : "far fa-heart"
+                  }`}
+                ></i>
+              </button>
             </div>
-            <SimilarProducts userId={userId} selectedProductId={productId} />
+            <SimilarProducts
+              userId={userId}
+              selectedProductId={productId}
+              toggleFavorite={toggleFavorite}
+              favorites={favorites}
+            />
           </div>
         ) : (
           // Product List View
@@ -518,7 +535,19 @@ const Shop = ({ addToCart }) => {
                         alt={product.name}
                         className='product-img'
                       />
-                      <div className='card-body d-flex flex-column justify-content-between p-4'>
+                      <div className='card-body d-flex flex-column justify-content-between p-4 position-relative'>
+                        <button
+                          className='favorite'
+                          onClick={() => toggleFavorite(product)}
+                        >
+                          <i
+                            className={`${
+                              favorites.some((fav) => fav.id === product.id)
+                                ? "fas fa-heart checked"
+                                : "far fa-heart"
+                            }`}
+                          ></i>
+                        </button>
                         <div className='d-flex justify-content-between gap-3'>
                           <h5 className='card-title mb-0'>{product.name}</h5>
                           <span className='product-price'>

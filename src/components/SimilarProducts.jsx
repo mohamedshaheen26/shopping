@@ -7,7 +7,12 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { API_BASE_URL } from "../config";
 
-const SimilarProducts = ({ userId, selectedProductId }) => {
+const SimilarProducts = ({
+  userId,
+  selectedProductId,
+  toggleFavorite,
+  favorites,
+}) => {
   const { categoryId } = useParams(); // Get categoryId from URL
   const [similarProducts, setSimilarProducts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -142,7 +147,19 @@ const SimilarProducts = ({ userId, selectedProductId }) => {
                   alt={product.name}
                   className='product-img'
                 />
-                <div className='card-body d-flex flex-column justify-content-between p-4'>
+                <div className='card-body d-flex flex-column justify-content-between p-4 position-relative'>
+                  <button
+                    className='favorite'
+                    onClick={() => toggleFavorite(product)}
+                  >
+                    <i
+                      className={`${
+                        favorites.some((fav) => fav.id === product.id)
+                          ? "fas fa-heart checked"
+                          : "far fa-heart"
+                      }`}
+                    ></i>
+                  </button>
                   <div className='d-flex justify-content-between'>
                     <h5 className='card-title'>{product.name}</h5>
                     <span className='product-price'>{product.price}EGP</span>

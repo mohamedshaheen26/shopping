@@ -13,20 +13,57 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import OrderDetails from "./pages/OrderDetails";
+import Favorites from "./pages/Favorites";
+
 function Layout() {
   const location = useLocation();
+  const userId = localStorage.getItem("userId");
   const hideHeaderFooter = ["/login", "/register"].includes(location.pathname);
 
   const [cartItems, setCartItems] = useState([]);
+  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const storedFavorites =
+      JSON.parse(localStorage.getItem(`favorite_items_${userId}`)) || [];
     setCartItems(storedCart);
-  }, []);
+    setFavorites(storedFavorites);
+  }, [userId]);
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
+    if (cartItems.length > 0) {
+      localStorage.setItem("cart", JSON.stringify(cartItems));
+    }
   }, [cartItems]);
+
+  useEffect(() => {
+    if (favorites.length > 0) {
+      localStorage.setItem(
+        `favorite_items_${userId}`,
+        JSON.stringify(favorites)
+      );
+    }
+  }, [favorites, userId]);
+
+  // Toggle favorite function
+  const toggleFavorite = (product) => {
+    setFavorites((prevFavorites) => {
+      const isFavorite = prevFavorites.some((item) => item.id === product.id);
+
+      if (isFavorite) {
+        // Remove from favorites
+        return prevFavorites.filter((item) => item.id !== product.id);
+      } else {
+        // Add to favorites
+        return [...prevFavorites, product];
+      }
+    });
+  };
+
+  const deleteItemFromFavorites = (itemId) => {
+    setFavorites((prev) => prev.filter((item) => item.id !== itemId));
+  };
 
   const addToCart = (product) => {
     setCartItems((prev) => {
@@ -44,7 +81,9 @@ function Layout() {
 
   return (
     <div className='App'>
-      {!hideHeaderFooter && <Header cartItems={cartItems} />}
+      {!hideHeaderFooter && (
+        <Header favorites={favorites} cartItems={cartItems} />
+      )}
       <main className='main-content'>
         <Routes>
           <Route path='/' element={<Home />} />
@@ -56,21 +95,45 @@ function Layout() {
           <Route path='/register' element={<Register />} />
           <Route path='/orderDetails' element={<OrderDetails />} />
           <Route
+            path='/favorites'
+            element={
+              <Favorites
+                favorites={favorites}
+                deleteItemFromFavorites={deleteItemFromFavorites}
+              />
+            }
+          />
+          <Route
             path='/products'
             element={
-              <Products addToCart={addToCart} key={window.location.pathname} />
+              <Products
+                toggleFavorite={toggleFavorite}
+                favorites={favorites}
+                addToCart={addToCart}
+                key={window.location.pathname}
+              />
             }
           />
           <Route
             path='/products/:categoryId'
             element={
-              <Products addToCart={addToCart} key={window.location.pathname} />
+              <Products
+                toggleFavorite={toggleFavorite}
+                favorites={favorites}
+                addToCart={addToCart}
+                key={window.location.pathname}
+              />
             }
           />
           <Route
             path='/products/:categoryId/:productId'
             element={
-              <Products addToCart={addToCart} key={window.location.pathname} />
+              <Products
+                toggleFavorite={toggleFavorite}
+                favorites={favorites}
+                addToCart={addToCart}
+                key={window.location.pathname}
+              />
             }
           />
         </Routes>
