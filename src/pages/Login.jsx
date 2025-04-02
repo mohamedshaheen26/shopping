@@ -113,7 +113,7 @@ function Login() {
             <input
               type='email'
               className='form-control'
-              value={email}
+              value={email.toLocaleLowerCase()}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
