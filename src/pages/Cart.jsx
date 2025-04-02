@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import OrderSuccessPopup from "../components/OrderSuccessPopup";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { API_BASE_URL } from "../config";
@@ -211,6 +211,14 @@ const Cart = ({ cartItems, setCartItems }) => {
         finalPrice: total,
       };
       setCartFromServer(updatedCartFromServer);
+      toast.success(`Product Removed From Your Cart!`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
     } catch (error) {
       console.error("Error removing item from server cart:", error);
     }
@@ -374,8 +382,6 @@ const Cart = ({ cartItems, setCartItems }) => {
 
   return (
     <section className='cart'>
-      <ToastContainer style={{ zIndex: 99999999 }} />
-
       <OrderSuccessPopup
         show={showModal}
         handleClose={() => {

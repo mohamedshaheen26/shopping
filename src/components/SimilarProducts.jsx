@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import Loading from "./Loading";
 import Modal from "./Modal";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { API_BASE_URL } from "../config";
@@ -131,7 +131,6 @@ const SimilarProducts = ({
 
   return (
     <div className='similar-products'>
-      <ToastContainer style={{ zIndex: 99999999 }} />
       <h2>Similar Products</h2>
       <div className='row' id='similarProducts'>
         {loading ? (

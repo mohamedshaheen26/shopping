@@ -15,6 +15,9 @@ import Register from "./pages/Register";
 import OrderDetails from "./pages/OrderDetails";
 import Favorites from "./pages/Favorites";
 
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 function Layout() {
   const location = useLocation();
   const userId = localStorage.getItem("userId");
@@ -32,55 +35,84 @@ function Layout() {
   }, [userId]);
 
   useEffect(() => {
-    if (cartItems.length > 0) {
-      localStorage.setItem("cart", JSON.stringify(cartItems));
-    }
+    localStorage.setItem("cart", JSON.stringify(cartItems));
   }, [cartItems]);
 
   useEffect(() => {
-    if (favorites.length > 0) {
-      localStorage.setItem(
-        `favorite_items_${userId}`,
-        JSON.stringify(favorites)
-      );
-    }
+    localStorage.setItem(`favorite_items_${userId}`, JSON.stringify(favorites));
   }, [favorites, userId]);
 
   // Toggle favorite function
   const toggleFavorite = (product) => {
-    setFavorites((prevFavorites) => {
-      const isFavorite = prevFavorites.some((item) => item.id === product.id);
+    let updatedFavorites;
+    const isFavorite = favorites.some((item) => item.id === product.id);
 
-      if (isFavorite) {
-        // Remove from favorites
-        return prevFavorites.filter((item) => item.id !== product.id);
-      } else {
-        // Add to favorites
-        return [...prevFavorites, product];
-      }
-    });
+    if (isFavorite) {
+      toast.warning(`Product Removed From Favorites!`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
+
+      // Remove from favorites
+      updatedFavorites = favorites.filter((item) => item.id !== product.id);
+    } else {
+      toast.success(`Product added to Favorites!`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
+
+      // Add to favorites
+      updatedFavorites = [...favorites, product];
+    }
+
+    // Update state and localStorage
+    setFavorites(updatedFavorites);
+    localStorage.setItem(
+      `favorite_items_${userId}`,
+      JSON.stringify(updatedFavorites)
+    );
   };
 
   const deleteItemFromFavorites = (itemId) => {
     setFavorites((prev) => prev.filter((item) => item.id !== itemId));
   };
-
+  
   const addToCart = (product) => {
     setCartItems((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
       if (existingItem) {
         return prev.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                quantity: item.quantity + 1,
+                stock: item.stock, // Keep the stock information
+              }
             : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [
+        ...prev,
+        {
+          ...product,
+          quantity: 1,
+          stock: product.stock, // Include stock information
+        },
+      ];
     });
   };
-
+  
   return (
     <div className='App'>
+      <ToastContainer style={{ zIndex: 99999999 }} />
       {!hideHeaderFooter && (
         <Header favorites={favorites} cartItems={cartItems} />
       )}

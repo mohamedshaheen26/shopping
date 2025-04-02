@@ -2,7 +2,7 @@ import { React, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Slider from "../components/Slider";
 import Loading from "../components/Loading";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { API_BASE_URL } from "../config";
@@ -102,7 +102,6 @@ const Home = () => {
   return (
     <>
       <section className='hero-section mb-3 mb-lg-5'>
-        <ToastContainer style={{ zIndex: 99999999 }} />
         <div className='hero-content'>
           <h1 className='hero-headline'>New Season, New Style!</h1>
           <Link to='/products' className='hero-button'>

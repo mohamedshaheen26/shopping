@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import Loading from "../components/Loading";
@@ -317,7 +317,6 @@ const Shop = ({ addToCart, toggleFavorite, favorites }) => {
 
   return (
     <section className='shop'>
-      <ToastContainer style={{ zIndex: 99999999 }} />
       <div className='container'>
         {!singleProduct && (
           <>
