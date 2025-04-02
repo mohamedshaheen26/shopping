@@ -123,10 +123,10 @@ const Header = ({ cartItems, favorites }) => {
                       </span>
                       <ul>
                         <li className='w-100'>
-                          <a href='/profile'>
+                          <Link to='/profile'>
                             <i className='fas fa-user'></i>
-                            <span>My profile</span>
-                          </a>
+                            <span>My Profile</span>
+                          </Link>
                         </li>
                         <li className='w-100 log-out'>
                           <Link

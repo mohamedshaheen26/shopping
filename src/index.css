@@ -677,7 +677,8 @@ nav ul a.active {
 .admin,
 .product-details,
 .cart,
-.order-details {
+.order-details,
+.profile {
   font-family: "Cairo", sans-serif;
   padding-top: 80px;
 }
