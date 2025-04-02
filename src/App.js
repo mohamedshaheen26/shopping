@@ -84,6 +84,14 @@ function Layout() {
 
   const deleteItemFromFavorites = (itemId) => {
     setFavorites((prev) => prev.filter((item) => item.id !== itemId));
+    toast.warning(`Product Removed From Favorites!`, {
+      position: "top-left",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      draggable: true,
+      closeButton: false,
+    });
   };
 
   const addToCart = (product) => {
