@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { API_BASE_URL } from "../config";
 
 const SimilarProducts = ({
+  addToCart,
   userId,
   selectedProductId,
   toggleFavorite,
@@ -54,7 +55,8 @@ const SimilarProducts = ({
     fetchSimilarProducts();
   }, [userId, categoryId, selectedProductId]);
 
-  const addToCart = async (product, countryCode) => {
+  const handleAddToCart = async (product, countryCode) => {
+    addToCart(product);
     setIsSaving(true);
 
     try {
@@ -125,7 +127,7 @@ const SimilarProducts = ({
 
   const handleConfirmCountry = () => {
     if (selectedProduct && selectedCountry) {
-      addToCart(selectedProduct, selectedCountry);
+      handleAddToCart(selectedProduct, selectedCountry);
     }
   };
 

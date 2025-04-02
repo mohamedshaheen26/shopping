@@ -77,6 +77,7 @@ function Login() {
           "userName",
           `${data.firstName + " " + data.lastName}`
         );
+        localStorage.setItem("firstLogin", "true");
 
         setLoading(false);
         navigate("/");

@@ -515,6 +515,7 @@ const Shop = ({ addToCart, toggleFavorite, favorites }) => {
               </button>
             </div>
             <SimilarProducts
+              addToCart={addToCart}
               userId={userId}
               selectedProductId={productId}
               toggleFavorite={toggleFavorite}

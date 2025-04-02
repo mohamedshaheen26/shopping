@@ -1,9 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const Header = ({ cartItems, favorites }) => {
   const location = useLocation();
   const userId = localStorage.getItem("userId");
+
+  const [profileMenu, setProfileMenu] = useState(false);
+
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to top whenever location changes
   }, [location.pathname]);
@@ -13,6 +16,8 @@ const Header = ({ cartItems, favorites }) => {
     localStorage.removeItem("userId");
     localStorage.removeItem("cart");
     localStorage.removeItem(`cart_${userId}`);
+    localStorage.removeItem("userName");
+    localStorage.removeItem("firstLogin");
     window.location.href = "/login";
   };
 
@@ -103,17 +108,41 @@ const Header = ({ cartItems, favorites }) => {
                     )}
                   </Link>
                 </li>
-                <li>
-                  <Link
+                <li className='user-account position-relative'>
+                  <button
                     className='login_icon'
-                    to='/login'
-                    title='Logout'
-                    onClick={() => {
-                      removeCredntials();
-                    }}
+                    title='Profile'
+                    onClick={() => setProfileMenu((prev) => !prev)}
                   >
                     <img src='../../assets/profile.png' alt='Profile' />
-                  </Link>
+                  </button>
+                  {profileMenu && (
+                    <div className='menu'>
+                      <span className='user-name'>
+                        <strong>{localStorage.getItem("userName")}</strong>
+                      </span>
+                      <ul>
+                        <li className='w-100'>
+                          <a href='/profile'>
+                            <i className='fas fa-user'></i>
+                            <span>My profile</span>
+                          </a>
+                        </li>
+                        <li className='w-100 log-out'>
+                          <Link
+                            to='/login'
+                            title='Logout'
+                            onClick={() => {
+                              removeCredntials();
+                            }}
+                          >
+                            <i className='fas fa-sign-out-alt'></i>
+                            <span>Logout</span>
+                          </Link>
+                        </li>
+                      </ul>
+                    </div>
+                  )}
                 </li>
               </ul>
             </nav>

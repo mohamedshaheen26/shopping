@@ -44,8 +44,9 @@ const Home = () => {
 
   useEffect(() => {
     const userName = localStorage.getItem("userName");
+    const firstLogin = localStorage.getItem("firstLogin");
 
-    if (userName) {
+    if (userName && firstLogin === "true") {
       toast.success(`👋 Welcome Back, ${userName}!`, {
         position: "top-center",
         autoClose: 3000,
@@ -55,10 +56,8 @@ const Home = () => {
         closeButton: false,
         style: { width: "350px" },
       });
-      // Remove AFTER the toast is displayed (5 seconds later)
-      setTimeout(() => {
-        localStorage.removeItem("userName");
-      }, 5000);
+
+      localStorage.setItem("firstLogin", "false");
     }
   }, []);
 

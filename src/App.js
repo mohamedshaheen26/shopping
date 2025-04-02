@@ -10,6 +10,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
+import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import OrderDetails from "./pages/OrderDetails";
@@ -84,7 +85,7 @@ function Layout() {
   const deleteItemFromFavorites = (itemId) => {
     setFavorites((prev) => prev.filter((item) => item.id !== itemId));
   };
-  
+
   const addToCart = (product) => {
     setCartItems((prev) => {
       const existingItem = prev.find((item) => item.id === product.id);
@@ -109,7 +110,7 @@ function Layout() {
       ];
     });
   };
-  
+
   return (
     <div className='App'>
       <ToastContainer style={{ zIndex: 99999999 }} />
@@ -123,6 +124,7 @@ function Layout() {
             path='/cart'
             element={<Cart cartItems={cartItems} setCartItems={setCartItems} />}
           />
+          <Route path='/profile' element={<Profile />} />
           <Route path='/login' element={<Login />} />
           <Route path='/register' element={<Register />} />
           <Route path='/orderDetails' element={<OrderDetails />} />
