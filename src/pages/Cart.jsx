@@ -17,7 +17,7 @@ const Cart = ({ cartItems, setCartItems }) => {
   const [showModal, setShowModal] = useState(false);
   const userId = localStorage.getItem("userId");
   const [region, setRegion] = useState("");
-  const [showRegion, setShowRegion] = useState(false);
+  const [showPlaceOrder, setShowPlaceOrder] = useState(false);
   const [cartFromServer, setCartFromServer] = useState(null);
   const navigate = useNavigate();
 
@@ -262,13 +262,25 @@ const Cart = ({ cartItems, setCartItems }) => {
   };
 
   const checkout = () => {
-    setShowRegion(true);
+    setShowPlaceOrder(true);
   };
 
   // Checkout function
   const placeOrder = async () => {
     if (!userId) {
       toast.warning(`You must be logged in to checkout`, {
+        position: "top-left",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        draggable: true,
+        closeButton: false,
+      });
+      return;
+    }
+
+    if (!region) {
+      toast.warning(`Please Fill Shipping Details`, {
         position: "top-left",
         autoClose: 3000,
         hideProgressBar: false,
@@ -338,7 +350,7 @@ const Cart = ({ cartItems, setCartItems }) => {
       updateCartTotals([]);
 
       setShowModal(true); // Show success modal
-      setShowRegion(false);
+      setShowPlaceOrder(false);
     } catch (error) {
       console.error("Checkout error:", error);
       toast.error(`Failed to complete the purchase. Please try again.`, {
@@ -356,27 +368,22 @@ const Cart = ({ cartItems, setCartItems }) => {
 
   const clearCart = async () => {
     try {
-      for (const item of cartItems) {
-        const response = await fetch(
-          `${API_BASE_URL}/Cart/RemoveItem/${cartId}/${item.id}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+      const response = await fetch(`${API_BASE_URL}/Cart/${cartId}/items`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("Failed to remove item from cart:", errorData);
-          throw new Error("Failed to clear cart");
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to remove item from cart:", errorData);
+        throw new Error("Failed to clear cart");
       }
     } catch (error) {
       console.error("Error clearing cart:", error);
-      throw error; // Re-throw the error to handle it in the checkout function
+      throw error;
     }
   };
 
@@ -394,83 +401,130 @@ const Cart = ({ cartItems, setCartItems }) => {
           <Loading />
         ) : cartItems.length > 0 ? (
           <>
-            <h1 className='text-center'>Your Cart</h1>
-            <div className='cart-content'>
+            {!showPlaceOrder && <h1 className='text-center'>Your Cart</h1>}
+            <div className='cart-content my-5'>
               <div className='row'>
                 <div className='col-md-9'>
-                  <div className='table-responsive'>
-                    <table className='table mb-0'>
-                      <thead>
-                        <tr>
-                          <th>Product</th>
-                          <th className='text-center'>Price</th>
-                          <th className='text-center'>Quantity</th>
-                          <th className='text-center'>Total</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {cartItems.map((item) => (
-                          <tr key={item.id}>
-                            <td className='w-50'>
-                              <div className='d-flex align-items-center'>
-                                <img
-                                  src={item.imageUrl}
-                                  alt='Product Images'
-                                  height='100'
-                                  width='100'
-                                  className='me-3'
-                                />
-                                <h6>{item.productName}</h6>
-                              </div>
-                            </td>
-                            <td className='text-center align-middle'>
-                              {item.price}EGP
-                            </td>
-                            <td className='align-middle'>
-                              <div className='quantity-container d-flex justify-content-between align-items-center gap-2 px-2'>
-                                <button
-                                  className='quantity'
-                                  onClick={() =>
-                                    updateCartItemQuantity(
-                                      item.id,
-                                      item.quantity - 1
-                                    )
-                                  }
-                                  disabled={item.quantity === 1}
-                                >
-                                  -
-                                </button>
-                                <span className='mx-2'>{item.quantity}</span>
-                                <button
-                                  className='quantity'
-                                  onClick={() =>
-                                    updateCartItemQuantity(
-                                      item.id,
-                                      item.quantity + 1
-                                    )
-                                  }
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </td>
-                            <td className='text-center align-middle'>
-                              {item.price * item.quantity}EGP
-                            </td>
-                            <td className='text-center align-middle'>
-                              <button
-                                className='btn btn-sm del-cartItem'
-                                onClick={() => removeFromCart(item.id)}
-                              >
-                                ✖
-                              </button>
-                            </td>
+                  {showPlaceOrder ? (
+                    <div className='card-body p-4 shipping-details'>
+                      <h5>Shipping Address</h5>
+                      <div className='row'>
+                        <div className='col-md-12 mb-2'>
+                          <label className='form-label'>Street Address</label>
+                          <input type='text' className='form-control' />
+                        </div>
+                        <div className='col-md-6 mb-2'>
+                          <label className='form-label'>City</label>
+                          <input type='text' className='form-control' />
+                        </div>
+                        <div className='col-md-6 mb-2'>
+                          <label className='form-label'>State</label>
+                          <input type='text' className='form-control' />
+                        </div>
+                        <div className='col-md-6 mb-2'>
+                          <label className='form-label'>ZIP/Postal Code</label>
+                          <input type='text' className='form-control' />
+                        </div>
+                        <div className='col-md-6 mb-2'>
+                          <label className='form-label'>Country</label>
+                          <select
+                            className='form-select'
+                            value={region}
+                            onChange={(e) => setRegion(e.target.value)}
+                          >
+                            <option value=''>Select</option>
+                            <option value='0'>Tanta</option>
+                            <option value='1'>Cairo</option>
+                            <option value='2'>UpperEgypt</option>
+                            <option value='3'>Alexadria</option>
+                            <option value='4'>Mansoura</option>
+                          </select>
+                        </div>
+                        <div className='col-md-6 mb-2'>
+                          <label className='form-label'>Email</label>
+                          <input type='text' className='form-control' />
+                        </div>
+                        <div className='col-md-6 mb-2'>
+                          <label className='form-label'>Full Name</label>
+                          <input type='text' className='form-control' />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className='table-responsive'>
+                      <table className='table mb-0'>
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th className='text-center'>Price</th>
+                            <th className='text-center'>Quantity</th>
+                            <th className='text-center'>Total</th>
+                            <th></th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {cartItems.map((item) => (
+                            <tr key={item.id}>
+                              <td className='w-50'>
+                                <div className='d-flex align-items-center'>
+                                  <img
+                                    src={item.imageUrl}
+                                    alt='Product Images'
+                                    height='100'
+                                    width='100'
+                                    className='me-3'
+                                  />
+                                  <h6>{item.productName}</h6>
+                                </div>
+                              </td>
+                              <td className='text-center align-middle'>
+                                {item.price}EGP
+                              </td>
+                              <td className='align-middle'>
+                                <div className='quantity-container d-flex justify-content-between align-items-center gap-2 px-2'>
+                                  <button
+                                    className='quantity'
+                                    onClick={() =>
+                                      updateCartItemQuantity(
+                                        item.id,
+                                        item.quantity - 1
+                                      )
+                                    }
+                                    disabled={item.quantity === 1}
+                                  >
+                                    -
+                                  </button>
+                                  <span className='mx-2'>{item.quantity}</span>
+                                  <button
+                                    className='quantity'
+                                    onClick={() =>
+                                      updateCartItemQuantity(
+                                        item.id,
+                                        item.quantity + 1
+                                      )
+                                    }
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </td>
+                              <td className='text-center align-middle'>
+                                {item.price * item.quantity}EGP
+                              </td>
+                              <td className='text-center align-middle'>
+                                <button
+                                  className='btn btn-sm del-cartItem'
+                                  onClick={() => removeFromCart(item.id)}
+                                >
+                                  ✖
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
                 <div className='col-md-3'>
@@ -478,13 +532,31 @@ const Cart = ({ cartItems, setCartItems }) => {
                     <table className='table table-borderless mb-0'>
                       <thead>
                         <tr>
-                          <th
-                            colSpan='2'
-                            className='fs-5 text-black'
-                            scope='col'
-                          >
-                            Order Summary
-                          </th>
+                          {showPlaceOrder ? (
+                            <th
+                              colSpan='2'
+                              className='fs-5 text-warning'
+                              scope='col'
+                            >
+                              <div className=' d-flex justify-content-between align-content-center'>
+                                Your Order
+                                <button
+                                  className='btn btn-sm edit-cartItem'
+                                  onClick={() => setShowPlaceOrder(false)}
+                                >
+                                  Edit Cart
+                                </button>
+                              </div>
+                            </th>
+                          ) : (
+                            <th
+                              colSpan='2'
+                              className='fs-5 text-black'
+                              scope='col'
+                            >
+                              Order Summary
+                            </th>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -515,7 +587,10 @@ const Cart = ({ cartItems, setCartItems }) => {
                             {cartFromServer?.discountApplied ?? discount}EGP
                           </td>
                         </tr>
-                        <tr className='fw-bold'>
+                        <tr
+                          className='fw-bold'
+                          style={{ backgroundColor: "#D9D9D9" }}
+                        >
                           <td>Total Price</td>
                           <td className='text-center fw-bold'>
                             {cartFromServer?.finalPrice}EGP
@@ -524,24 +599,7 @@ const Cart = ({ cartItems, setCartItems }) => {
                       </tbody>
                     </table>
                   </div>
-                  {showRegion && (
-                    <div className='card-body mt-3 p-2 checkout'>
-                      <label className='form-label'>Select Region</label>
-                      <select
-                        className='form-select'
-                        value={region}
-                        onChange={(e) => setRegion(e.target.value)}
-                      >
-                        <option value=''>Select</option>
-                        <option value='0'>Tanta</option>
-                        <option value='1'>Cairo</option>
-                        <option value='2'>UpperEgypt</option>
-                        <option value='3'>Alexadria</option>
-                        <option value='4'>Mansoura</option>
-                      </select>
-                    </div>
-                  )}
-                  {showRegion ? (
+                  {showPlaceOrder ? (
                     <button
                       className='btn btn-primary btn-buy w-100'
                       onClick={placeOrder}

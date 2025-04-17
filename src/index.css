@@ -520,6 +520,24 @@ nav ul a.active {
   color: white;
 }
 
+.shipping-details h5 {
+  color: #ffc700;
+}
+
+.shipping-details label {
+  color: #184671;
+}
+
+.edit-cartItem {
+  border: 1px solid #ffc700;
+  padding-inline: 10px;
+}
+
+.edit-cartItem:hover {
+  background-color: #ffc700;
+  color: #fff;
+}
+
 /* Hero Section Styling */
 .hero-section {
   height: 100vh;
@@ -794,6 +812,7 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.form-control,
 .form-select {
   border: 1px solid rgba(169, 84, 63, 1) !important;
   color: rgba(169, 84, 63, 1);

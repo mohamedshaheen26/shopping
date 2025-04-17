@@ -109,8 +109,6 @@ const Profile = () => {
     }
   };
 
-  console.log(formData);
-
   return (
     <section className='profile pb-5'>
       <div className='container'>

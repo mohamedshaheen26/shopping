@@ -4,8 +4,12 @@ import { Link, useLocation } from "react-router-dom";
 const Header = ({ cartItems, favorites }) => {
   const location = useLocation();
   const userId = localStorage.getItem("userId");
-
+  const [userName, setUserName] = useState("");
   const [profileMenu, setProfileMenu] = useState(false);
+
+  useEffect(() => {
+    setUserName(localStorage.getItem("userName") || "");
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to top whenever location changes
@@ -119,7 +123,7 @@ const Header = ({ cartItems, favorites }) => {
                   {profileMenu && (
                     <div className='menu'>
                       <span className='user-name'>
-                        <strong>{localStorage.getItem("userName")}</strong>
+                        <strong>{userName}</strong>
                       </span>
                       <ul>
                         <li className='w-100'>
