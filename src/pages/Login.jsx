@@ -80,7 +80,7 @@ function Login() {
         localStorage.setItem("firstLogin", "true");
 
         setLoading(false);
-        navigate("/");
+        window.location.href = "/"; // Redirect to home page
       } else {
         setError(data.message || "Login failed.");
       }

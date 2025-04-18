@@ -26,6 +26,14 @@ function Layout() {
 
   const [cartItems, setCartItems] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check if user is logged in
+
+  useEffect(() => {
+    const userStatus = localStorage.getItem("userId") ? true : false;
+    setIsLoggedIn(userStatus);
+  }, []);
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -123,7 +131,11 @@ function Layout() {
     <div className='App'>
       <ToastContainer style={{ zIndex: 99999999 }} />
       {!hideHeaderFooter && (
-        <Header favorites={favorites} cartItems={cartItems} />
+        <Header
+          favorites={favorites}
+          cartItems={cartItems}
+          isLoggedIn={isLoggedIn}
+        />
       )}
       <main className='main-content'>
         <Routes>

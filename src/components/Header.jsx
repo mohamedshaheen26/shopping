@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-const Header = ({ cartItems, favorites }) => {
+const Header = ({ cartItems, favorites, isLoggedIn }) => {
   const location = useLocation();
   const userId = localStorage.getItem("userId");
   const [userName, setUserName] = useState("");
@@ -122,26 +122,30 @@ const Header = ({ cartItems, favorites }) => {
                   </button>
                   {profileMenu && (
                     <div className='menu'>
-                      <span className='user-name'>
-                        <strong>{userName}</strong>
-                      </span>
+                      {isLoggedIn && (
+                        <span className='user-name'>
+                          <strong>{userName}</strong>
+                        </span>
+                      )}
                       <ul>
-                        <li className='w-100'>
-                          <Link to='/profile'>
-                            <i className='fas fa-user'></i>
-                            <span>My Profile</span>
-                          </Link>
-                        </li>
+                        {isLoggedIn && (
+                          <li className='w-100'>
+                            <Link to='/profile'>
+                              <i className='fas fa-user'></i>
+                              <span>My Profile</span>
+                            </Link>
+                          </li>
+                        )}
                         <li className='w-100 log-out'>
                           <Link
                             to='/login'
-                            title='Logout'
+                            title={isLoggedIn ? "Logout" : "Login"}
                             onClick={() => {
                               removeCredntials();
                             }}
                           >
                             <i className='fas fa-sign-out-alt'></i>
-                            <span>Logout</span>
+                            <span>{isLoggedIn ? "Logout" : "Login"}</span>
                           </Link>
                         </li>
                       </ul>
