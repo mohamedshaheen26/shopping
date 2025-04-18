@@ -751,7 +751,7 @@ nav ul a.active {
 
 /* Style the range input */
 input[type="range"] {
-  -webkit-appearance: none; /* Remove default styling */
+  appearance: none; /* Remove default styling */
   width: 100%;
   height: 8px;
   background: #ddd; /* Default track color */
@@ -950,6 +950,93 @@ input[type="range"]::-moz-range-thumb {
 .categoriesTable button,
 .productsTable button {
   border: none;
+}
+
+.profile .nav-item .nav-link {
+  color: var(--main-color);
+}
+
+.profile .nav-item .nav-link.active {
+  color: var(--bg-color);
+}
+
+.profile .call-center img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.profile .message,
+.profile .response {
+  width: fit-content;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: white;
+
+  font-size: 1rem;
+  font-weight: 500;
+  position: relative;
+}
+
+.profile .message {
+  background-color: var(--bg-color);
+  color: #fff;
+}
+
+.profile .response {
+  background-color: #e7e7e7;
+  color: #101010;
+}
+
+.profile .message::before,
+.profile .response::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+}
+
+.profile .message::before {
+  right: -10px;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 10px solid var(--bg-color);
+}
+
+.profile .response::before {
+  left: -10px;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 10px solid #e7e7e7;
+}
+
+.profile .time {
+  font-size: 0.8rem;
+  color: #999;
+  display: block;
+}
+
+.profile .submit-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--bg-color);
+  color: var(--main-color);
+  font-size: 1rem;
+}
+
+.profile .submit-msg {
+  background-color: var(--bg-color);
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 /* ================ RESPONSIVE & BREAKPOINTS ============= */
