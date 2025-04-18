@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_BASE_URL } from "../config";
@@ -155,7 +155,7 @@ const Profile = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          message: formData.messageInput,
+          message: messageInput,
         }),
       });
       if (!response.ok) {
@@ -176,7 +176,7 @@ const Profile = () => {
     } catch (error) {
       toast.error(error.message);
     } finally {
-      setFormData((prev) => ({ ...prev, messageInput: "" }));
+      setMessageInput("");
     }
   };
 
@@ -331,39 +331,44 @@ const Profile = () => {
         ) : (
           <div className='p-4 shadow-lg rounded bg-white call-center'>
             <div className='row'>
-              <div className='col-5 d-flex justify-content-center align-items-center'>
+              <div className='col-md-5 mb-4 d-flex justify-content-center align-items-center'>
                 <img src='assets\message.png' alt='' />
               </div>
-              <div className='col-7'>
+              <div className='col-md-7'>
                 <section className='card border-0'>
-                  <div className='card-body'>
+                  <div className='card-body p-0'>
                     <div className='card-title mb-3 pb-2 px-3 border-bottom d-flex justify-content-between align-items-center'>
                       <h5 className='text-left mb-0'>
                         {localStorage.getItem("userName")}
                       </h5>
                       <i className='fas fa-ellipsis-v text-warning'></i>
                     </div>
-                    {
-                      /* Support Data Display */
-                      [...supportData].reverse().map((item, index) => (
-                        <React.Fragment key={index}>
-                          <div className='d-flex flex-column align-items-end mb-3'>
-                            <div className='message'>{item.message}</div>
-                            <span className='time'>
-                              {formatTime(item.createdAt)}
-                            </span>
-                          </div>
-                          {item.response && (
-                            <div className='d-flex flex-column align-items-start mb-3'>
-                              <div className='response'>{item.response}</div>
+                    <div
+                      className='overflow-auto'
+                      style={{ maxHeight: "400px" }}
+                    >
+                      {
+                        /* Support Data Display */
+                        [...supportData].reverse().map((item, index) => (
+                          <React.Fragment key={index}>
+                            <div className='d-flex flex-column align-items-end mb-3 mx-3'>
+                              <div className='message'>{item.message}</div>
                               <span className='time'>
-                                {formatTime(item.respondedAt)}
+                                {formatTime(item.createdAt)}
                               </span>
                             </div>
-                          )}
-                        </React.Fragment>
-                      ))
-                    }
+                            {item.response && (
+                              <div className='d-flex flex-column align-items-start mb-3 mx-3'>
+                                <div className='response'>{item.response}</div>
+                                <span className='time'>
+                                  {formatTime(item.respondedAt)}
+                                </span>
+                              </div>
+                            )}
+                          </React.Fragment>
+                        ))
+                      }
+                    </div>
                     <div className='msg-box'>
                       <div className='d-flex justify-content-between align-items-center gap-2'>
                         <input
@@ -371,8 +376,8 @@ const Profile = () => {
                           className='form-control submit-input'
                           placeholder='Type your message...'
                           id='messageInput'
-                          onChange={handleChange}
-                          value={formData.messageInput || ""}
+                          onChange={(e) => setMessageInput(e.target.value)}
+                          value={messageInput || ""}
                         />
                         <button
                           className='btn btn-primary submit-msg'
